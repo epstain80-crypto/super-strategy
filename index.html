@@ -2,121 +2,266 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Strategy</title>
+    <title>Global Hegemony: Intelligence & Conquest</title>
     <style>
-        body { font-family: 'Courier New', monospace; background: #1a1a1a; color: #eee; text-align: center; margin: 0; padding: 20px; }
-        .setup-panel { background: #2a2a2a; padding: 30px; border-radius: 12px; border: 2px solid #444; display: inline-block; margin-top: 50px; max-width: 500px; }
-        input { display: block; margin: 20px auto; padding: 12px; background: #333; color: #fff; border: 1px solid #555; border-radius: 6px; width: 80%; font-size: 16px; }
-        button { padding: 12px 24px; background: #4caf50; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        button:hover { background: #45a049; }
-        .hidden { display: none; }
-        .leader-gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 20px 0; }
-        .leader-opt { width: 100px; height: 100px; border: 4px solid transparent; border-radius: 50%; cursor: pointer; overflow: hidden; transition: 0.2s; background: #333;}
-        .leader-opt img { width: 100%; height: 100%; object-fit: cover; }
-        .leader-opt.selected { border-color: #4caf50; transform: scale(1.1); box-shadow: 0 0 15px rgba(76, 175, 80, 0.5); }
-        .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #eee; object-fit: cover; margin-bottom: 15px; }
+        :root { --bg: #0d0f12; --panel: #1a1d23; --accent: #ffce2e; --land: #2d3d2d; --water: #162a3a; --border: #3e4451; --enemy: #8b2020; --mine: #3a7a3a; }
+        body { font-family: 'Segoe UI', monospace; background: var(--bg); color: #ccc; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* Верхняя панель */
+        .top-bar { background: var(--panel); padding: 12px 25px; display: flex; justify-content: space-between; border-bottom: 2px solid var(--border); z-index: 100; box-shadow: 0 5px 15px rgba(0,0,0,0.7); }
+        .res { color: var(--accent); font-weight: bold; margin-right: 20px; font-size: 14px; }
+
+        /* Окно создания */
+        #setup-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .setup-window { background: var(--panel); border: 2px solid var(--border); padding: 40px; width: 650px; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,1); }
+        .leader-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 25px 0; }
+        .leader-card { position: relative; border: 2px solid #333; cursor: pointer; height: 110px; transition: 0.2s; overflow: hidden; }
+        .leader-card img { width: 100%; height: 100%; object-fit: cover; }
+        .leader-card.selected { border-color: var(--accent); box-shadow: 0 0 20px var(--accent); }
+        .leader-card.taken { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); }
+        .leader-card.taken::after { content: "ЗАНЯТ"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #ff4444; font-size: 12px; font-weight: bold; background: rgba(0,0,0,0.5); }
+        
+        input { background: #000; color: var(--accent); border: 1px solid var(--border); padding: 12px; width: 85%; margin-bottom: 15px; font-size: 16px; }
+
+        /* Игровое поле */
+        main { display: flex; flex: 1; overflow: hidden; }
+        #sidebar { width: 320px; background: var(--panel); border-right: 2px solid var(--border); padding: 20px; overflow-y: auto; }
+        #map-viewport { flex: 1; position: relative; overflow: auto; background: #050505; }
+        
+        #world-map { display: grid; grid-template-columns: repeat(40, 60px); grid-template-rows: repeat(30, 60px); gap: 1px; padding: 100px; }
+        .tile { width: 60px; height: 60px; transition: 0.1s; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #fff; cursor: pointer; text-shadow: 1px 1px 2px #000; }
+        .tile.land { background: var(--land); }
+        .tile.water { background: var(--water); cursor: default; }
+        .tile.mine { background: var(--mine) !important; outline: 2px solid var(--accent); z-index: 5; }
+        .tile.enemy { background: var(--enemy) !important; }
+        .tile:hover { filter: brightness(1.4); transform: scale(1.05); z-index: 10; }
+
+        /* Кнопки и Лог */
+        .btn { background: #2c313a; border: 1px solid var(--border); color: #fff; padding: 10px; width: 100%; margin-bottom: 8px; cursor: pointer; text-align: left; font-size: 12px; transition: 0.2s; }
+        .btn:hover { background: #3e4451; border-color: var(--accent); }
+        .btn span { color: var(--accent); float: right; }
+        #log { font-size: 11px; color: #00ff00; height: 250px; overflow-y: auto; background: #000; padding: 10px; border: 1px solid var(--border); margin-top: 20px; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="loading">📡 Установка связи с Кремлем/Белым домом...</div>
-
-    <div id="creation-form" class="setup-panel hidden">
-        <h2>Основание Державы</h2>
-        <input type="text" id="country-name" placeholder="Название вашей страны" maxlength="25">
-        <p>Выберите облик правителя:</p>
-      <div class="leader-gallery" id="leader-selector">
-    <div class="leader-opt" data-leader="zel"><img src="leaders/zel.png" title="Зеленский"></div>
-    <div class="leader-opt" data-leader="put"><img src="leaders/put.png" title="Путин"></div>
-    <div class="leader-opt" data-leader="trump"><img src="leaders/trump.png" title="Трамп"></div>
-    <div class="leader-opt" data-leader="net"><img src="leaders/net.png" title="Нетаньяху"></div>
-    <div class="leader-opt" data-leader="obama"><img src="leaders/obama.png" title="Обама"></div>
-    <div class="leader-opt" data-leader="mod"><img src="leaders/mod.png" title="Моди"></div>
-    <div class="leader-opt" data-leader="si"><img src="leaders/si.png" title="Си Цзиньпин"></div>
-    <div class="leader-opt" data-leader="kaz"><img src="leaders/kaz.png" title="Токаев"></div>
-    <div class="leader-opt" data-leader="edr"><img src="leaders/edr.png" title="Эрдоган"></div>
-    <div class="leader-opt" data-leader="kim"><img src="leaders/kim.png" title="Ким Чен Ын"></div>
-    <div class="leader-opt" data-leader="hus"><img src="leaders/hus.png" title="Хусейн"></div>
-    <div class="leader-opt" data-leader="luk"><img src="leaders/luk.png" title="Лукашенко"></div>
-    <div class="leader-opt" data-leader="mak"><img src="leaders/mak.png" title="Макрон"></div>
-</div>
-        <button id="start-btn">Утвердить власть</button>
-    </div>
-
-    <div id="game-panel" class="setup-panel hidden">
-        <img src="" id="display-avatar" class="profile-avatar">
-        <h1 id="display-country">Страна</h1>
-        <div style="text-align: left; background: #222; padding: 15px; border-radius: 8px;">
-            <p>💰 Золото: <b id="display-gold">0</b></p>
-            <p>⚔️ Армия: <b id="display-army">0</b> чел.</p>
+    <div id="setup-screen" class="hidden">
+        <div class="setup-window">
+            <h1 style="letter-spacing: 5px; color: var(--accent);">GLOBAL COMMAND</h1>
+            <input type="text" id="player-name" placeholder="Ваше Имя (Верховный Главнокомандующий)">
+            <input type="text" id="country-name" placeholder="Название вашей страны">
+            <p style="font-size: 12px; color: #888;">ВЫБЕРИТЕ СВОБОДНЫЙ ПОРТРЕТ ЛИДЕРА:</p>
+            <div class="leader-grid" id="leader-picker"></div>
+            <button id="start-game" style="padding: 18px 50px; background: var(--accent); border: none; font-weight: bold; cursor: pointer; font-size: 16px;">НАЧАТЬ ЭКСПАНСИЮ</button>
         </div>
-        <br>
-        <button onclick="alert('Строительство начато. Вернитесь через пару часов!')" style="background: #2196F3;">Построить Казарму</button>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <div class="top-bar">
+        <div>
+            <span class="res">🚩 <span id="ui-country">-</span></span>
+            <span class="res">👤 <span id="ui-leader">-</span></span>
+        </div>
+        <div>
+            <span class="res">💵 БЮДЖЕТ: $<span id="ui-gold">0</span></span>
+            <span class="res">🎖️ АРМИЯ: <span id="ui-army">0</span></span>
+            <span class="res">🛰️ ТЕРРИТОРИЯ: <span id="ui-chunks">0</span></span>
+        </div>
+    </div>
 
-        // ТВОИ ДАННЫЕ ВСТАВЛЕНЫ СЮДА:
-        const firebaseConfig = {
-            apiKey: "AIzaSyAxNVY5ys6a6RnavEK1QoTUonTGe4qhrMc",
-            authDomain: "super-strategy.firebaseapp.com",
-            projectId: "super-strategy",
-            storageBucket: "super-strategy.firebasestorage.app",
-            messagingSenderId: "686354557279",
-            appId: "1:686354557279:web:4b56693c307718c4d86eea"
-        };
+    <main>
+        <div id="sidebar">
+            <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 5px;">ВОЕННЫЙ ЗАКАЗ</h3>
+            <button class="btn" onclick="buyUnit('infantry', 15000)">Нанять пехоту <span>$15k</span></button>
+            <button class="btn" onclick="buyUnit('tank', 4000000)">Произвести танк <span>$4M</span></button>
+            <button class="btn" onclick="buyUnit('factory', 750000)">Построить завод <span>$750k</span></button>
+            
+            <div id="log"></div>
+        </div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        <div id="map-viewport">
+            <div id="world-map"></div>
+        </div>
+    </main>
 
-        let currentUser = null;
-        let selectedLeaderId = null;
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, collection, query, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const selector = document.getElementById('leader-selector');
-        selector.onclick = (e) => {
-            const opt = e.target.closest('.leader-opt');
-            if (!opt) return;
-            document.querySelectorAll('.leader-opt').forEach(el => el.classList.remove('selected'));
-            opt.classList.add('selected');
-            selectedLeaderId = opt.dataset.leader;
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyAxNVY5ys6a6RnavEK1QoTUonTGe4qhrMc",
+        authDomain: "super-strategy.firebaseapp.com",
+        projectId: "super-strategy",
+        storageBucket: "super-strategy.firebasestorage.app",
+        messagingSenderId: "686354557279",
+        appId: "1:686354557279:web:4b56693c307718c4d86eea"
+    };
 
-        signInAnonymously(auth).catch(err => console.error(err));
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('loading').classList.add('hidden');
-                const docSnap = await getDoc(doc(db, "countries", user.uid));
-                if (docSnap.exists()) {
-                    showGame(docSnap.data());
-                } else {
-                    document.getElementById('creation-form').classList.remove('hidden');
-                }
-            }
-        });
+    let userState = null;
+    let selectedLeader = null;
+    const leaders = ['zel','put','trump','net','obama','mod','si','kaz','edr','kim','hus','luk','mak'];
 
-        document.getElementById('start-btn').onclick = async () => {
-            const name = document.getElementById('country-name').value.trim();
-            if(!name || !selectedLeaderId) return alert("Выбери имя и лицо правителя!");
-            const data = { name, leaderImgId: selectedLeaderId, gold: 1000, army: 50 };
-            await setDoc(doc(db, "countries", currentUser.uid), data);
-            showGame(data);
-        };
+    // 1. Оффлайн доход (Расчет один раз при входе)
+    async function calculateIncome(data) {
+        const now = Date.now();
+        const last = data.lastUpdate || now;
+        const diff = Math.floor((now - last) / 1000);
+        const incomePerSec = (data.income || 100) / 10; 
+        const earned = diff * incomePerSec;
 
-        function showGame(data) {
-            document.getElementById('creation-form').classList.add('hidden');
-            document.getElementById('game-panel').classList.remove('hidden');
-            document.getElementById('display-country').innerText = data.name;
-            document.getElementById('display-gold').innerText = data.gold;
-            document.getElementById('display-army').innerText = data.army;
-            document.getElementById('display-avatar').src = `leaders/${data.leaderImgId}.png`;
+        if (earned > 1) {
+            log(`С возвращением! Доход за время отсутствия: $${Math.floor(earned).toLocaleString()}`);
+            const newGold = data.gold + earned;
+            await updateDoc(doc(db, "countries", auth.currentUser.uid), { gold: newGold, lastUpdate: now });
+            return newGold;
         }
-    </script>
+        return data.gold;
+    }
+
+    // 2. Инициализация карты
+    function initMap() {
+        const map = document.getElementById('world-map');
+        map.innerHTML = '';
+        for (let y = 0; y < 30; y++) {
+            for (let x = 0; x < 40; x++) {
+                const tile = document.createElement('div');
+                const isWater = (y < 3 || y > 26 || Math.random() < 0.15);
+                tile.className = `tile ${isWater ? 'water' : 'land'}`;
+                tile.id = `tile-${x}-${y}`;
+                tile.onclick = () => handleTileClick(x, y, isWater);
+                map.appendChild(tile);
+            }
+        }
+    }
+
+    // 3. Клик по чанку (Захват или Шпионаж)
+    async function handleTileClick(x, y, isWater) {
+        if (isWater) return;
+        
+        const tileRef = doc(db, "world_map", `${x}-${y}`);
+        const snap = await getDoc(tileRef);
+
+        if (snap.exists()) {
+            const data = snap.data();
+            if (data.owner === auth.currentUser.uid) {
+                log(`Ваша территория: чанк ${x}:${y}`);
+            } else {
+                // ШПИОНАЖ
+                if (userState.gold < 5000) return log("Недостаточно денег для разведки!");
+                const targetDoc = await getDoc(doc(db, "countries", data.owner));
+                const targetData = targetDoc.data();
+                log(`РАЗВЕДКА [${data.country}]: Лидер: ${targetData.leaderName}, Бюджет: $${targetData.gold.toLocaleString()}, Армия: ${targetData.army} чел.`);
+                await updateDoc(doc(db, "countries", auth.currentUser.uid), { gold: userState.gold - 5000 });
+            }
+        } else {
+            // ЗАХВАТ
+            if (userState.gold < 10000) return log("Нужно $10,000 для захвата чанка!");
+            await setDoc(tileRef, { owner: auth.currentUser.uid, country: userState.countryName });
+            await updateDoc(doc(db, "countries", auth.currentUser.uid), { 
+                gold: userState.gold - 10000, 
+                chunks: (userState.chunks || 0) + 1,
+                lastUpdate: Date.now()
+            });
+            log(`Чанк ${x}:${y} присоединен к вашей державе!`);
+        }
+    }
+
+    // 4. Покупка юнитов
+    window.buyUnit = async (type, price) => {
+        if (userState.gold < price) return log("Бюджет пуст!");
+        let upd = { gold: userState.gold - price, lastUpdate: Date.now() };
+        if (type === 'infantry') upd.army = userState.army + 10;
+        if (type === 'tank') upd.army = userState.army + 250;
+        if (type === 'factory') upd.income = (userState.income || 100) + 500;
+        
+        await updateDoc(doc(db, "countries", auth.currentUser.uid), upd);
+        log(`Успешно: закуплено ${type}`);
+    };
+
+    function log(msg) {
+        const l = document.getElementById('log');
+        l.innerHTML = `> ${msg}<br>` + l.innerHTML;
+    }
+
+    // 5. Выбор лидеров и запуск
+    async function loadLeaders() {
+        const snap = await getDocs(collection(db, "countries"));
+        const taken = []; snap.forEach(d => taken.push(d.data().leaderImgId));
+        const picker = document.getElementById('leader-picker');
+        picker.innerHTML = '';
+        leaders.forEach(l => {
+            const isT = taken.includes(l);
+            const div = document.createElement('div');
+            div.className = `leader-card ${isT ? 'taken' : ''}`;
+            div.innerHTML = `<img src="leaders/${l}.png">`;
+            if (!isT) div.onclick = () => {
+                document.querySelectorAll('.leader-card').forEach(c => c.classList.remove('selected'));
+                div.classList.add('selected'); selectedLeader = l;
+            };
+            picker.appendChild(div);
+        });
+    }
+
+    document.getElementById('start-game').onclick = async () => {
+        const pN = document.getElementById('player-name').value;
+        const cN = document.getElementById('country-name').value;
+        if (!pN || !cN || !selectedLeader) return alert("Штаб требует полные данные!");
+
+        let sX, sY, ok = false;
+        while(!ok) {
+            sX = Math.floor(Math.random()*40); sY = Math.floor(Math.random()*30);
+            const t = document.getElementById(`tile-${sX}-${sY}`);
+            if (t && t.classList.contains('land')) ok = true;
+        }
+
+        const data = { leaderName: pN, countryName: cN, leaderImgId: selectedLeader, gold: 50000, army: 100, chunks: 1, income: 200, lastUpdate: Date.now() };
+        await setDoc(doc(db, "countries", auth.currentUser.uid), data);
+        await setDoc(doc(db, "world_map", `${sX}-${sY}`), { owner: auth.currentUser.uid, country: cN });
+        document.getElementById('setup-screen').classList.add('hidden');
+    };
+
+    // 6. Слушатели
+    signInAnonymously(auth);
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            initMap();
+            await loadLeaders();
+            const docRef = doc(db, "countries", user.uid);
+            const uDoc = await getDoc(docRef);
+            
+            if (uDoc.exists()) {
+                await calculateIncome(uDoc.data());
+                onSnapshot(docRef, (s) => {
+                    userState = s.data();
+                    document.getElementById('ui-gold').innerText = Math.floor(userState.gold).toLocaleString();
+                    document.getElementById('ui-army').innerText = userState.army;
+                    document.getElementById('ui-country').innerText = userState.countryName;
+                    document.getElementById('ui-leader').innerText = userState.leaderName;
+                    document.getElementById('ui-chunks').innerText = userState.chunks;
+                    document.getElementById('setup-screen').classList.add('hidden');
+                });
+            } else {
+                document.getElementById('setup-screen').classList.remove('hidden');
+            }
+
+            onSnapshot(collection(db, "world_map"), (s) => {
+                s.forEach(c => {
+                    const d = c.data();
+                    const t = document.getElementById(`tile-${c.id}`);
+                    if (t) {
+                        t.className = `tile land ${d.owner === auth.currentUser.uid ? 'mine' : 'enemy'}`;
+                        t.innerText = d.country.substring(0,3).toUpperCase();
+                    }
+                });
+            });
+        }
+    });
+</script>
 </body>
 </html>
