@@ -5,34 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Strategy</title>
     <style>
-        body { font-family: sans-serif; background: #222; color: #fff; text-align: center; }
-        .setup-panel { background: #333; padding: 20px; border-radius: 10px; display: inline-block; margin-top: 50px; }
-        input, select, button { display: block; margin: 10px auto; padding: 10px; }
+        body { font-family: 'Courier New', monospace; background: #1a1a1a; color: #eee; text-align: center; margin: 0; padding: 20px; }
+        .setup-panel { background: #2a2a2a; padding: 30px; border-radius: 12px; border: 2px solid #444; display: inline-block; margin-top: 50px; max-width: 500px; }
+        input { display: block; margin: 20px auto; padding: 12px; background: #333; color: #fff; border: 1px solid #555; border-radius: 6px; width: 80%; font-size: 16px; }
+        button { padding: 12px 24px; background: #4caf50; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background: #45a049; }
         .hidden { display: none; }
+        .leader-gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 20px 0; }
+        .leader-opt { width: 100px; height: 100px; border: 4px solid transparent; border-radius: 50%; cursor: pointer; overflow: hidden; transition: 0.2s; background: #333;}
+        .leader-opt img { width: 100%; height: 100%; object-fit: cover; }
+        .leader-opt.selected { border-color: #4caf50; transform: scale(1.1); box-shadow: 0 0 15px rgba(76, 175, 80, 0.5); }
+        .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #eee; object-fit: cover; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <div id="loading">Загрузка данных сервера...</div>
+    <div id="loading">📡 Установка связи с Кремлем/Белым домом...</div>
 
     <div id="creation-form" class="setup-panel hidden">
-        <h2>Создай свою державу</h2>
-        <input type="text" id="country-name" placeholder="Название страны">
-        <select id="leader">
-            <option value="Trump">Дональд Трамп</option>
-            <option value="Putin">Владимир Путин</option>
-            <option value="Netanyahu">Биньямин Нетаньяху</option>
-            <option value="Custom">Свой вариант</option>
-        </select>
-        <button id="start-btn">Основать государство</button>
+        <h2>Основание Державы</h2>
+        <input type="text" id="country-name" placeholder="Название вашей страны" maxlength="25">
+        <p>Выберите облик правителя:</p>
+        <div class="leader-gallery" id="leader-selector">
+            <div class="leader-opt" data-leader="trump"><img src="leaders/trump.jpg" alt="Trump"></div>
+            <div class="leader-opt" data-leader="putin"><img src="leaders/putin.jpg" alt="Putin"></div>
+            <div class="leader-opt" data-leader="netanyahu"><img src="leaders/netanyahu.jpg" alt="Netanyahu"></div>
+            <div class="leader-opt" data-leader="custom"><img src="leaders/custom.jpg" alt="Leader"></div>
+        </div>
+        <button id="start-btn">Утвердить власть</button>
     </div>
 
     <div id="game-panel" class="setup-panel hidden">
-        <h2 id="display-country">Страна</h2>
-        <p>Лидер: <span id="display-leader"></span></p>
-        <p>Золото: <span id="display-gold">0</span></p>
-        <p>Армия: <span id="display-army">0</span></p>
-        <button onclick="alert('Стройка началась! Жди 2 часа...')">Построить казарму</button>
+        <img src="" id="display-avatar" class="profile-avatar">
+        <h1 id="display-country">Страна</h1>
+        <div style="text-align: left; background: #222; padding: 15px; border-radius: 8px;">
+            <p>💰 Золото: <b id="display-gold">0</b></p>
+            <p>⚔️ Армия: <b id="display-army">0</b> чел.</p>
+        </div>
+        <br>
+        <button onclick="alert('Строительство начато. Вернитесь через пару часов!')" style="background: #2196F3;">Построить Казарму</button>
     </div>
 
     <script type="module">
@@ -40,14 +51,14 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ТВОЙ КОНФИГ ИЗ FIREBASE CONSOLE
+        // ТВОИ ДАННЫЕ ВСТАВЛЕНЫ СЮДА:
         const firebaseConfig = {
-            apiKey: "ТВОЙ_API_KEY",
-            authDomain: "ТВОЙ_PROJECT_ID.firebaseapp.com",
-            projectId: "ТВОЙ_PROJECT_ID",
-            storageBucket: "ТВОЙ_PROJECT_ID.appspot.com",
-            messagingSenderId: "ТВОЙ_SENDER_ID",
-            appId: "ТВОЙ_APP_ID"
+            apiKey: "AIzaSyAxNVY5ys6a6RnavEK1QoTUonTGe4qhrMc",
+            authDomain: "super-strategy.firebaseapp.com",
+            projectId: "super-strategy",
+            storageBucket: "super-strategy.firebasestorage.app",
+            messagingSenderId: "686354557279",
+            appId: "1:686354557279:web:4b56693c307718c4d86eea"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -55,56 +66,47 @@
         const db = getFirestore(app);
 
         let currentUser = null;
+        let selectedLeaderId = null;
 
-        // 1. Анонимная авторизация
-        signInAnonymously(auth).catch(err => console.error("Ошибка входа:", err));
+        const selector = document.getElementById('leader-selector');
+        selector.onclick = (e) => {
+            const opt = e.target.closest('.leader-opt');
+            if (!opt) return;
+            document.querySelectorAll('.leader-opt').forEach(el => el.classList.remove('selected'));
+            opt.classList.add('selected');
+            selectedLeaderId = opt.dataset.leader;
+        };
+
+        signInAnonymously(auth).catch(err => console.error(err));
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 document.getElementById('loading').classList.add('hidden');
-                checkCountry(user.uid);
+                const docSnap = await getDoc(doc(db, "countries", user.uid));
+                if (docSnap.exists()) {
+                    showGame(docSnap.data());
+                } else {
+                    document.getElementById('creation-form').classList.remove('hidden');
+                }
             }
         });
 
-        // 2. Проверка, есть ли уже страна у этого "IP/ID"
-        async function checkCountry(uid) {
-            const docRef = doc(db, "countries", uid);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                showGame(data);
-            } else {
-                document.getElementById('creation-form').classList.remove('hidden');
-            }
-        }
-
-        // 3. Сохранение новой страны
         document.getElementById('start-btn').onclick = async () => {
-            const name = document.getElementById('country-name').value;
-            const leader = document.getElementById('leader').value;
-
-            if(!name) return alert("Введи название!");
-
-            const newCountry = {
-                name: name,
-                leader: leader,
-                gold: 100,
-                army: 0,
-                createdAt: Date.now()
-            };
-
-            await setDoc(doc(db, "countries", currentUser.uid), newCountry);
-            showGame(newCountry);
+            const name = document.getElementById('country-name').value.trim();
+            if(!name || !selectedLeaderId) return alert("Выбери имя и лицо правителя!");
+            const data = { name, leaderImgId: selectedLeaderId, gold: 1000, army: 50 };
+            await setDoc(doc(db, "countries", currentUser.uid), data);
+            showGame(data);
         };
 
         function showGame(data) {
             document.getElementById('creation-form').classList.add('hidden');
             document.getElementById('game-panel').classList.remove('hidden');
             document.getElementById('display-country').innerText = data.name;
-            document.getElementById('display-leader').innerText = data.leader;
             document.getElementById('display-gold').innerText = data.gold;
+            document.getElementById('display-army').innerText = data.army;
+            document.getElementById('display-avatar').src = `leaders/${data.leaderImgId}.jpg`;
         }
     </script>
 </body>
