@@ -1,1 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Strategy</title>
+    <style>
+        body { font-family: sans-serif; background: #222; color: #fff; text-align: center; }
+        .setup-panel { background: #333; padding: 20px; border-radius: 10px; display: inline-block; margin-top: 50px; }
+        input, select, button { display: block; margin: 10px auto; padding: 10px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
 
+    <div id="loading">Загрузка данных сервера...</div>
+
+    <div id="creation-form" class="setup-panel hidden">
+        <h2>Создай свою державу</h2>
+        <input type="text" id="country-name" placeholder="Название страны">
+        <select id="leader">
+            <option value="Trump">Дональд Трамп</option>
+            <option value="Putin">Владимир Путин</option>
+            <option value="Netanyahu">Биньямин Нетаньяху</option>
+            <option value="Custom">Свой вариант</option>
+        </select>
+        <button id="start-btn">Основать государство</button>
+    </div>
+
+    <div id="game-panel" class="setup-panel hidden">
+        <h2 id="display-country">Страна</h2>
+        <p>Лидер: <span id="display-leader"></span></p>
+        <p>Золото: <span id="display-gold">0</span></p>
+        <p>Армия: <span id="display-army">0</span></p>
+        <button onclick="alert('Стройка началась! Жди 2 часа...')">Построить казарму</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // ТВОЙ КОНФИГ ИЗ FIREBASE CONSOLE
+        const firebaseConfig = {
+            apiKey: "ТВОЙ_API_KEY",
+            authDomain: "ТВОЙ_PROJECT_ID.firebaseapp.com",
+            projectId: "ТВОЙ_PROJECT_ID",
+            storageBucket: "ТВОЙ_PROJECT_ID.appspot.com",
+            messagingSenderId: "ТВОЙ_SENDER_ID",
+            appId: "ТВОЙ_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+
+        // 1. Анонимная авторизация
+        signInAnonymously(auth).catch(err => console.error("Ошибка входа:", err));
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loading').classList.add('hidden');
+                checkCountry(user.uid);
+            }
+        });
+
+        // 2. Проверка, есть ли уже страна у этого "IP/ID"
+        async function checkCountry(uid) {
+            const docRef = doc(db, "countries", uid);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                showGame(data);
+            } else {
+                document.getElementById('creation-form').classList.remove('hidden');
+            }
+        }
+
+        // 3. Сохранение новой страны
+        document.getElementById('start-btn').onclick = async () => {
+            const name = document.getElementById('country-name').value;
+            const leader = document.getElementById('leader').value;
+
+            if(!name) return alert("Введи название!");
+
+            const newCountry = {
+                name: name,
+                leader: leader,
+                gold: 100,
+                army: 0,
+                createdAt: Date.now()
+            };
+
+            await setDoc(doc(db, "countries", currentUser.uid), newCountry);
+            showGame(newCountry);
+        };
+
+        function showGame(data) {
+            document.getElementById('creation-form').classList.add('hidden');
+            document.getElementById('game-panel').classList.remove('hidden');
+            document.getElementById('display-country').innerText = data.name;
+            document.getElementById('display-leader').innerText = data.leader;
+            document.getElementById('display-gold').innerText = data.gold;
+        }
+    </script>
+</body>
+</html>
