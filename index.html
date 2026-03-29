@@ -980,28 +980,51 @@ function updateUI() {
 }
 
 // ─── MAP INIT ────────────────────────────────────────────────────────────────────
+
+
+let tileTypes = {}; // static, generated once
+let tileResources = {}; // static
+let tilePopulations = {}; // static
+
+// ─── DETERMINISTIC SEEDED RNG (одинаково у всех игроков) ────────────────────────
+// Глобальный сид — фиксированное число, одинаковое для всех
+const MAP_SEED = 0xDEADBEEF;
+
+function seededHash(x, y, salt) {
+  // Murmur-inspired integer hash — чисто детерминированный, без Math.random()
+  let h = MAP_SEED ^ (x * 374761393) ^ (y * 1103515245) ^ (salt * 2246822519);
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xcc9e2d51 | 0);
+  h ^= h >>> 15;
+  h = Math.imul(h, 0x1b873593 | 0);
+  h ^= h >>> 16;
+  // Вернуть число от 0 до 1
+  return (h >>> 0) / 0xFFFFFFFF;
+}
+
 function generateTileType(x, y) {
-  // Water border + random inland water
-  if (x < 2 || x > MAP_W-3 || y < 2 || y > MAP_H-3) return 'water';
-  // Create continents using simple noise
-  const noise = Math.sin(x * 0.3 + y * 0.5) * Math.cos(x * 0.2 - y * 0.4);
-  return noise < -0.2 ? 'water' : 'land';
+  // Жёсткие границы — вода по краям карты
+  if (x < 2 || x > MAP_W - 3 || y < 2 || y > MAP_H - 3) return 'water';
+  // Детерминированный "шум" через тригонометрию без рандома — одинаковый у всех
+  const n1 = Math.sin(x * 0.31 + y * 0.53) * Math.cos(x * 0.19 - y * 0.41);
+  const n2 = seededHash(x, y, 1) * 0.4 - 0.2; // детерм. хэш вместо random
+  return (n1 + n2) < -0.15 ? 'water' : 'land';
 }
 
 function generateResource(x, y) {
-  if (Math.random() > RES_CHANCE) return null;
-  const idx = (x * 7 + y * 13) % RES_KEYS.length;
+  // Детерминированный шанс ресурса
+  const chance = seededHash(x, y, 2);
+  if (chance > RES_CHANCE) return null;
+  // Детерминированный выбор типа ресурса
+  const idx = Math.floor(seededHash(x, y, 3) * RES_KEYS.length);
   return RES_KEYS[idx];
 }
 
 function generatePopulation(x, y) {
-  // Random base + coastal bonus
-  const coastal = (x < 5 || x > MAP_W-6 || y < 5 || y > MAP_H-6) ? 1.5 : 1;
-  return Math.floor((Math.random() * 8000 + 2000) * coastal);
+  const coastal = (x < 5 || x > MAP_W - 6 || y < 5 || y > MAP_H - 6) ? 1.5 : 1;
+  // seededHash даёт стабильное число 0..1 для каждой клетки
+  return Math.floor((seededHash(x, y, 4) * 8000 + 2000) * coastal);
 }
-
-let tileTypes = {}; // static, generated once
-let tileResources = {}; // static
 
 function initMap() {
   const mapEl = document.getElementById('world-map');
@@ -1016,6 +1039,7 @@ function initMap() {
       tileTypes[tileId] = type;
       if (type === 'land') {
         tileResources[tileId] = generateResource(x, y);
+        tilePopulations[tileId] = generatePopulation(x, y);
       }
       const tile = document.createElement('div');
       tile.className = `tile ${type}`;
@@ -1182,7 +1206,7 @@ async function showEnemyPanel(tileId) {
 function showFreeLandPanel(tileId, tx, ty) {
   const res = tileResources[tileId];
   const isAdj = isAdjacentToMine(tx, ty);
-  const pop = Math.floor(generatePopulation(tx,ty));
+  const pop = tilePopulations[tileId] || generatePopulation(tx, ty);
 
   let html = `
     <div class="info-header">
@@ -1223,7 +1247,7 @@ function closeInfoPanel() {
 window.captureFreeTile = async function(tileId) {
   if (!userState || userState.gold < 10000) return log('Нужно $10,000 для захвата!', 'log-err');
   const [x, y] = getTileXY(tileId);
-  const pop = generatePopulation(x, y);
+  const pop = tilePopulations[tileId] || generatePopulation(x, y);
   const res = tileResources[tileId];
 
   await setDoc(doc(db, 'world_map', tileId), {
@@ -1881,7 +1905,7 @@ document.getElementById('start-btn').onclick = async () => {
     tries++;
   }
   const capId = `${sX}-${sY}`;
-  const pop = generatePopulation(sX, sY);
+  const pop = tilePopulations[capId] || generatePopulation(sX, sY);
   const res = tileResources[capId];
 
   const countryData = {
