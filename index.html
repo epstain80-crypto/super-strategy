@@ -1,267 +1,2018 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Global Hegemony: Intelligence & Conquest</title>
-    <style>
-        :root { --bg: #0d0f12; --panel: #1a1d23; --accent: #ffce2e; --land: #2d3d2d; --water: #162a3a; --border: #3e4451; --enemy: #8b2020; --mine: #3a7a3a; }
-        body { font-family: 'Segoe UI', monospace; background: var(--bg); color: #ccc; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
-        
-        /* Верхняя панель */
-        .top-bar { background: var(--panel); padding: 12px 25px; display: flex; justify-content: space-between; border-bottom: 2px solid var(--border); z-index: 100; box-shadow: 0 5px 15px rgba(0,0,0,0.7); }
-        .res { color: var(--accent); font-weight: bold; margin-right: 20px; font-size: 14px; }
+<meta charset="UTF-8">
+<title>Global Hegemony</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&family=Oswald:wght@300;400;700&display=swap');
 
-        /* Окно создания */
-        #setup-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .setup-window { background: var(--panel); border: 2px solid var(--border); padding: 40px; width: 650px; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,1); }
-        .leader-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 25px 0; }
-        .leader-card { position: relative; border: 2px solid #333; cursor: pointer; height: 110px; transition: 0.2s; overflow: hidden; }
-        .leader-card img { width: 100%; height: 100%; object-fit: cover; }
-        .leader-card.selected { border-color: var(--accent); box-shadow: 0 0 20px var(--accent); }
-        .leader-card.taken { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); }
-        .leader-card.taken::after { content: "ЗАНЯТ"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #ff4444; font-size: 12px; font-weight: bold; background: rgba(0,0,0,0.5); }
-        
-        input { background: #000; color: var(--accent); border: 1px solid var(--border); padding: 12px; width: 85%; margin-bottom: 15px; font-size: 16px; }
+:root {
+  --bg: #080a0d;
+  --panel: #0f1218;
+  --panel2: #161b24;
+  --accent: #e8c84a;
+  --accent2: #4ae8b0;
+  --land: #1e2d1e;
+  --water: #0a1a28;
+  --border: #2a3040;
+  --enemy: #6b1515;
+  --mine: #1a4a1a;
+  --neutral: #222833;
+  --red: #e84a4a;
+  --blue: #4a90e8;
+  --txt: #b0bac8;
+  --txt2: #7a8898;
+  --oil: #2a1a00;
+  --metal: #1a1a2a;
+  --uranium: #002a1a;
+  --rare: #1a002a;
+  --forest: #002a0a;
+  --stone: #2a2218;
+  --coal: #1a1a1a;
+}
 
-        /* Игровое поле */
-        main { display: flex; flex: 1; overflow: hidden; }
-        #sidebar { width: 320px; background: var(--panel); border-right: 2px solid var(--border); padding: 20px; overflow-y: auto; }
-        #map-viewport { flex: 1; position: relative; overflow: auto; background: #050505; }
-        
-        #world-map { display: grid; grid-template-columns: repeat(40, 60px); grid-template-rows: repeat(30, 60px); gap: 1px; padding: 100px; }
-        .tile { width: 60px; height: 60px; transition: 0.1s; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #fff; cursor: pointer; text-shadow: 1px 1px 2px #000; }
-        .tile.land { background: var(--land); }
-        .tile.water { background: var(--water); cursor: default; }
-        .tile.mine { background: var(--mine) !important; outline: 2px solid var(--accent); z-index: 5; }
-        .tile.enemy { background: var(--enemy) !important; }
-        .tile:hover { filter: brightness(1.4); transform: scale(1.05); z-index: 10; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* Кнопки и Лог */
-        .btn { background: #2c313a; border: 1px solid var(--border); color: #fff; padding: 10px; width: 100%; margin-bottom: 8px; cursor: pointer; text-align: left; font-size: 12px; transition: 0.2s; }
-        .btn:hover { background: #3e4451; border-color: var(--accent); }
-        .btn span { color: var(--accent); float: right; }
-        #log { font-size: 11px; color: #00ff00; height: 250px; overflow-y: auto; background: #000; padding: 10px; border: 1px solid var(--border); margin-top: 20px; }
-        
-        .hidden { display: none !important; }
-    </style>
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ═══════════════════════════════ SETUP ═══════════════════════════════ */
+#setup-screen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.97);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+.setup-window {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 40px 50px;
+  width: 720px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 0 80px rgba(232,200,74,0.08);
+}
+.setup-window h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 32px;
+  color: var(--accent);
+  letter-spacing: 8px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.setup-window p.sub {
+  text-align: center;
+  color: var(--txt2);
+  font-size: 13px;
+  margin-bottom: 28px;
+  letter-spacing: 3px;
+  font-family: 'Share Tech Mono', monospace;
+}
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.setup-window input {
+  background: #050709;
+  color: var(--accent);
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  font-size: 14px;
+  font-family: 'Share Tech Mono', monospace;
+  width: 100%;
+  outline: none;
+}
+.setup-window input:focus { border-color: var(--accent); }
+.leader-label {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--txt2);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.leader-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.leader-card {
+  position: relative;
+  border: 2px solid #222;
+  cursor: pointer;
+  height: 80px;
+  overflow: hidden;
+  transition: 0.2s;
+}
+.leader-card:hover { border-color: var(--accent); }
+.leader-card.selected { border-color: var(--accent); box-shadow: 0 0 16px var(--accent); }
+.leader-card.taken { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); }
+.leader-card.taken::after {
+  content: "✕";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--red);
+  font-size: 20px;
+  background: rgba(0,0,0,0.6);
+}
+.leader-card img { width: 100%; height: 100%; object-fit: cover; }
+.leader-card .lname {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-size: 8px;
+  background: rgba(0,0,0,0.8);
+  text-align: center;
+  padding: 2px;
+  letter-spacing: 1px;
+  color: #fff;
+}
+#start-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: var(--accent);
+  color: #000;
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  letter-spacing: 5px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  transition: 0.2s;
+}
+#start-btn:hover { background: #fff; }
+
+/* ═══════════════════════════════ TOP BAR ═══════════════════════════════ */
+.top-bar {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.top-res {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  margin-right: 18px;
+}
+.top-res span { color: #fff; }
+.top-res.pop { color: var(--accent2); }
+
+/* ═══════════════════════════════ MAIN LAYOUT ═══════════════════════════════ */
+main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ═══════════════════════════════ SIDEBAR ═══════════════════════════════ */
+#sidebar {
+  width: 280px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.stab {
+  flex: 1;
+  padding: 10px 4px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--txt2);
+  border-bottom: 2px solid transparent;
+  transition: 0.2s;
+  font-family: 'Oswald', sans-serif;
+}
+.stab:hover { color: var(--txt); }
+.stab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.sidebar-panel {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+}
+.sidebar-panel.active { display: block; }
+
+.section-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--txt2);
+  margin: 14px 0 8px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+.section-title:first-child { margin-top: 0; }
+
+/* ═══════════════════════════════ BUTTONS ═══════════════════════════════ */
+.btn {
+  display: block;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--txt);
+  padding: 9px 12px;
+  width: 100%;
+  margin-bottom: 6px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 12px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  transition: 0.15s;
+  letter-spacing: 0.5px;
+}
+.btn:hover { background: #1e2530; border-color: var(--accent); color: #fff; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn .cost { float: right; color: var(--accent); font-family: 'Share Tech Mono', monospace; font-size: 11px; }
+.btn .req { display: block; font-size: 10px; color: var(--txt2); margin-top: 2px; font-family: 'Share Tech Mono', monospace; }
+.btn.danger { border-color: #4a1a1a; }
+.btn.danger:hover { border-color: var(--red); background: #1e1010; }
+.btn.success { border-color: #1a4a2a; }
+.btn.success:hover { border-color: var(--accent2); background: #0e2018; }
+
+/* ═══════════════════════════════ LOG ═══════════════════════════════ */
+#log {
+  font-size: 11px;
+  color: #4ae880;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #020304;
+  padding: 10px;
+  border: 1px solid var(--border);
+  margin-top: 12px;
+  font-family: 'Share Tech Mono', monospace;
+  line-height: 1.7;
+}
+.log-warn { color: #e8c84a; }
+.log-err { color: var(--red); }
+.log-info { color: #4ab0e8; }
+
+/* ═══════════════════════════════ MAP ═══════════════════════════════ */
+#map-viewport {
+  flex: 1;
+  overflow: auto;
+  background: #020508;
+  position: relative;
+}
+#world-map {
+  display: grid;
+  grid-template-columns: repeat(50, 52px);
+  grid-template-rows: repeat(35, 52px);
+  gap: 1px;
+  padding: 60px;
+  position: relative;
+}
+.tile {
+  width: 52px;
+  height: 52px;
+  transition: 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  text-shadow: 1px 1px 3px #000;
+  position: relative;
+  font-family: 'Share Tech Mono', monospace;
+  flex-direction: column;
+  letter-spacing: 0.5px;
+  overflow: hidden;
+}
+.tile.land { background: var(--land); }
+.tile.water { background: var(--water); cursor: default; opacity: 0.6; }
+.tile.mine { background: var(--mine) !important; outline: 2px solid var(--accent); z-index: 5; }
+.tile.mine.capital { outline: 2px solid var(--accent2); background: #0e3020 !important; }
+.tile.enemy { background: var(--enemy) !important; }
+.tile.neutral-owned { background: #2a1f10 !important; }
+.tile:hover:not(.water) { filter: brightness(1.5); transform: scale(1.06); z-index: 20; }
+.tile.selected-tile { outline: 2px solid #fff; z-index: 15; }
+
+.tile .res-icon { font-size: 14px; line-height: 1; }
+.tile .tile-label { font-size: 7px; color: rgba(255,255,255,0.7); }
+.tile .army-marker {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 10px;
+}
+.tile .pop-dot {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 8px;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ═══════════════════════════════ INFO PANEL (RIGHT) ═══════════════════════════════ */
+#info-panel {
+  width: 300px;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: 0.3s;
+}
+#info-panel.collapsed { width: 0; }
+#info-panel-inner {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.info-portrait {
+  width: 60px;
+  height: 70px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.info-title { font-family: 'Oswald', sans-serif; font-size: 18px; color: #fff; }
+.info-sub { font-size: 11px; color: var(--txt2); font-family: 'Share Tech Mono', monospace; margin-top: 3px; }
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 12px;
+}
+.info-row .lbl { color: var(--txt2); font-family: 'Share Tech Mono', monospace; }
+.info-row .val { color: #fff; font-weight: 600; }
+.info-row .val.green { color: var(--accent2); }
+.info-row .val.yellow { color: var(--accent); }
+.info-row .val.red { color: var(--red); }
+.info-actions { margin-top: 14px; }
+
+/* ═══════════════════════════════ ARMY CREATION MODAL ═══════════════════════════════ */
+#army-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 1500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+#army-modal.open { display: flex; }
+.modal-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  width: 700px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 30px;
+  box-shadow: 0 0 60px rgba(0,0,0,0.9);
+}
+.modal-box h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 22px;
+  letter-spacing: 5px;
+  color: var(--accent);
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.unit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.unit-card {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  padding: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.unit-card:hover { border-color: var(--accent); }
+.unit-card.selected { border-color: var(--accent); background: #1a1e0e; }
+.unit-card .uname {
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.unit-card .ustat {
+  font-size: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--txt2);
+  line-height: 1.8;
+}
+.unit-card .ustat span { color: var(--accent); }
+
+.army-builder {
+  display: none;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.army-builder.active { display: block; }
+.qty-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.qty-row label { flex: 1; font-size: 13px; color: var(--txt2); }
+.qty-row input[type=range] { flex: 2; accent-color: var(--accent); }
+.qty-row .qty-val { width: 60px; text-align: right; color: var(--accent); font-family: 'Share Tech Mono', monospace; font-size: 13px; }
+.army-summary {
+  background: #000;
+  padding: 12px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  line-height: 2;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+.army-summary .s-row { display: flex; justify-content: space-between; }
+.army-summary .s-row span:last-child { color: var(--accent); }
+.army-summary .s-row.warn span:last-child { color: var(--red); }
+.army-summary .s-row.ok span:last-child { color: var(--accent2); }
+
+.modal-footer { display: flex; gap: 10px; }
+.modal-btn {
+  flex: 1;
+  padding: 14px;
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.modal-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); }
+.modal-btn.primary:hover { background: #fff; }
+.modal-btn:hover { border-color: var(--accent); }
+
+/* ═══════════════════════════════ ARMIES ON MAP ═══════════════════════════════ */
+.army-unit-marker {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: #1a3a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  z-index: 50;
+  transition: all 0.5s linear;
+  pointer-events: all;
+  box-shadow: 0 0 8px rgba(74,232,176,0.4);
+}
+.army-unit-marker.enemy-army {
+  border-color: var(--red);
+  background: #3a1a1a;
+  box-shadow: 0 0 8px rgba(232,74,74,0.4);
+}
+.army-unit-marker:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #000;
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  font-size: 10px;
+  white-space: nowrap;
+  font-family: 'Share Tech Mono', monospace;
+  color: #fff;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ═══════════════════════════════ COMBAT POPUP ═══════════════════════════════ */
+#combat-popup {
+  position: fixed;
+  top: 80px;
+  right: 320px;
+  width: 280px;
+  background: var(--panel);
+  border: 1px solid var(--red);
+  padding: 16px;
+  z-index: 500;
+  display: none;
+  box-shadow: 0 0 30px rgba(232,74,74,0.2);
+}
+#combat-popup.show { display: block; }
+#combat-popup h4 {
+  font-family: 'Oswald', sans-serif;
+  color: var(--red);
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+}
+.combat-log {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  line-height: 1.9;
+  color: var(--txt2);
+  max-height: 120px;
+  overflow-y: auto;
+}
+.combat-log .hit { color: var(--red); }
+.combat-log .miss { color: var(--txt2); }
+.combat-log .win { color: var(--accent2); font-weight: bold; }
+
+/* ═══════════════════════════════ PROGRESS / TIMERS ═══════════════════════════════ */
+.progress-item {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-family: 'Share Tech Mono', monospace;
+}
+.progress-bar-wrap {
+  height: 4px;
+  background: #111;
+  margin-top: 6px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width 1s linear;
+}
+
+/* ═══════════════════════════════ TOOLTIPS ═══════════════════════════════ */
+.tooltip {
+  position: fixed;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  font-size: 11px;
+  font-family: 'Share Tech Mono', monospace;
+  pointer-events: none;
+  z-index: 9999;
+  display: none;
+  line-height: 1.8;
+  max-width: 200px;
+}
+
+/* ═══════════════════════════════ SCROLLBARS ═══════════════════════════════ */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ═══════════════════════════════ MISC ═══════════════════════════════ */
+.hidden { display: none !important; }
+.badge {
+  display: inline-block;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  font-size: 10px;
+  padding: 2px 7px;
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--txt2);
+  margin: 2px;
+  border-radius: 2px;
+}
+.army-list-item {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-family: 'Share Tech Mono', monospace;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.army-list-item:hover { border-color: var(--accent2); }
+.army-list-item .a-name { color: var(--accent2); font-size: 12px; margin-bottom: 4px; }
+.army-list-item .a-stats { color: var(--txt2); }
+.army-list-item.moving { border-color: #4a90e8; }
+.army-list-item.in-combat { border-color: var(--red); animation: pulse 1s infinite; }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+.resource-badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-family: 'Share Tech Mono', monospace;
+  margin: 2px;
+}
+.rb-oil { background: #3a2200; color: #e8a040; }
+.rb-metal { background: #1a1a30; color: #8080e8; }
+.rb-uranium { background: #003a20; color: #40e890; }
+.rb-rare { background: #2a0040; color: #c040e8; }
+.rb-forest { background: #003a10; color: #40e860; }
+.rb-stone { background: #302820; color: #c0a870; }
+.rb-coal { background: #202020; color: #909090; }
+
+.build-queue-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-family: 'Share Tech Mono', monospace;
+}
+.build-queue-item .bq-time { color: var(--accent); }
+</style>
 </head>
 <body>
 
-    <div id="setup-screen" class="hidden">
-        <div class="setup-window">
-            <h1 style="letter-spacing: 5px; color: var(--accent);">GLOBAL COMMAND</h1>
-            <input type="text" id="player-name" placeholder="Ваше Имя (Верховный Главнокомандующий)">
-            <input type="text" id="country-name" placeholder="Название вашей страны">
-            <p style="font-size: 12px; color: #888;">ВЫБЕРИТЕ СВОБОДНЫЙ ПОРТРЕТ ЛИДЕРА:</p>
-            <div class="leader-grid" id="leader-picker"></div>
-            <button id="start-game" style="padding: 18px 50px; background: var(--accent); border: none; font-weight: bold; cursor: pointer; font-size: 16px;">НАЧАТЬ ЭКСПАНСИЮ</button>
-        </div>
+<!-- ══════════════════════════════════════════════════════ SETUP ══════════════════════ -->
+<div id="setup-screen" class="hidden">
+  <div class="setup-window">
+    <h1>GLOBAL HEGEMONY</h1>
+    <p class="sub">ВОЕННО-СТРАТЕГИЧЕСКОЕ КОМАНДОВАНИЕ</p>
+    <div class="field-row">
+      <input type="text" id="player-name" placeholder="Имя Верховного Командующего">
+      <input type="text" id="country-name" placeholder="Название Державы">
+    </div>
+    <p class="leader-label">Выберите Портрет Лидера:</p>
+    <div class="leader-grid" id="leader-picker"></div>
+    <button id="start-btn">НАЧАТЬ ЭКСПАНСИЮ</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ TOP BAR ══════════════════ -->
+<div class="top-bar">
+  <div style="display:flex;align-items:center;gap:6px">
+    <span class="top-res">🚩 <span id="ui-country">—</span></span>
+    <span class="top-res">👤 <span id="ui-leader">—</span></span>
+  </div>
+  <div style="display:flex;align-items:center">
+    <span class="top-res">💵 $<span id="ui-gold">0</span></span>
+    <span class="top-res">🏭 +$<span id="ui-income">0</span>/с</span>
+    <span class="top-res pop">👥 <span id="ui-pop">0</span></span>
+    <span class="top-res">🗺️ <span id="ui-chunks">0</span> чанков</span>
+    <span class="top-res">🛢️ <span id="ui-oil">0</span></span>
+    <span class="top-res">⛏️ <span id="ui-metal">0</span>т</span>
+    <span class="top-res">☢️ <span id="ui-uranium">0</span>кг</span>
+    <span class="top-res">💎 <span id="ui-rare">0</span>кг</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ MAIN ══════════════════════ -->
+<main>
+
+  <!-- ─── SIDEBAR ──────────────────────────────────── -->
+  <div id="sidebar">
+    <div class="sidebar-tabs">
+      <div class="stab active" onclick="switchTab('build')">🏗️ СТРОИТЬ</div>
+      <div class="stab" onclick="switchTab('armies')">⚔️ АРМИИ</div>
+      <div class="stab" onclick="switchTab('research')">🔬 НАУКА</div>
+      <div class="stab" onclick="switchTab('queue')">⏳ ОЧЕРЕДЬ</div>
     </div>
 
-    <div class="top-bar">
-        <div>
-            <span class="res">🚩 <span id="ui-country">-</span></span>
-            <span class="res">👤 <span id="ui-leader">-</span></span>
-        </div>
-        <div>
-            <span class="res">💵 БЮДЖЕТ: $<span id="ui-gold">0</span></span>
-            <span class="res">🎖️ АРМИЯ: <span id="ui-army">0</span></span>
-            <span class="res">🛰️ ТЕРРИТОРИЯ: <span id="ui-chunks">0</span></span>
-        </div>
+    <!-- BUILD TAB -->
+    <div class="sidebar-panel active" id="tab-build">
+      <div class="section-title">Начинающим</div>
+      <button class="btn success" onclick="buyBuilding('militia_post',800)">🏠 Пост ополчения <span class="cost">$800</span><span class="req">+5 солдат, +50 защита</span></button>
+      <button class="btn success" onclick="buyBuilding('barracks',5000)">🏚️ Казармы <span class="cost">$5k</span><span class="req">Разрешает набор пехоты</span></button>
+      <button class="btn success" onclick="buyBuilding('workshop',3000)">🔧 Мастерская <span class="cost">$3k</span><span class="req">+$200/с доход</span></button>
+
+      <div class="section-title">Экономика</div>
+      <button class="btn" onclick="buyBuilding('farm',2000)">🌾 Ферма <span class="cost">$2k</span><span class="req">+500 нас, +$100/с</span></button>
+      <button class="btn" onclick="buyBuilding('mine_site',8000)">⛏️ Рудник <span class="cost">$8k</span><span class="req">+2т металла/мин</span></button>
+      <button class="btn" onclick="buyBuilding('oil_rig',15000)">🛢️ Нефтяная вышка <span class="cost">$15k</span><span class="req">Требует чанк с нефтью</span></button>
+      <button class="btn" onclick="buyBuilding('factory',20000)">🏭 Завод <span class="cost">$20k</span><span class="req">+$1000/с, произв. техники</span></button>
+      <button class="btn" onclick="buyBuilding('port',12000)">⚓ Порт <span class="cost">$12k</span><span class="req">+$500/с торговля</span></button>
+      <button class="btn" onclick="buyBuilding('bank',25000)">🏦 Банк <span class="cost">$25k</span><span class="req">+$2000/с</span></button>
+
+      <div class="section-title">Военные</div>
+      <button class="btn danger" onclick="buyBuilding('armory',10000)">🗡️ Арсенал <span class="cost">$10k</span><span class="req">+$300/с, военные рецепты</span></button>
+      <button class="btn danger" onclick="buyBuilding('radar',18000)">📡 Радар <span class="cost">$18k</span><span class="req">Видеть врага на 10 тайлов</span></button>
+      <button class="btn danger" onclick="buyBuilding('air_base',40000)">✈️ Авиабаза <span class="cost">$40k</span><span class="req">Позволяет авиацию</span></button>
+      <button class="btn danger" onclick="buyBuilding('fortification',6000)">🏰 Укрепление <span class="cost">$6k</span><span class="req">+500 защита чанка</span></button>
+      <button class="btn danger" onclick="buyBuilding('nuclear_plant',80000)">☢️ Ядерный реактор <span class="cost">$80k</span><span class="req">+уран/мин, скрытые проекты</span></button>
+
+      <div id="log"></div>
     </div>
 
-    <main>
-        <div id="sidebar">
-            <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 5px;">ВОЕННЫЙ ЗАКАЗ</h3>
-            <button class="btn" onclick="buyUnit('infantry', 15000)">Нанять пехоту <span>$15k</span></button>
-            <button class="btn" onclick="buyUnit('tank', 4000000)">Произвести танк <span>$4M</span></button>
-            <button class="btn" onclick="buyUnit('factory', 750000)">Построить завод <span>$750k</span></button>
-            
-            <div id="log"></div>
-        </div>
+    <!-- ARMIES TAB -->
+    <div class="sidebar-panel" id="tab-armies">
+      <div class="section-title">Ваши Армии</div>
+      <button class="btn success" onclick="openArmyModal()">⚔️ Создать Армию</button>
+      <div id="army-list"></div>
 
-        <div id="map-viewport">
-            <div id="world-map"></div>
-        </div>
-    </main>
+      <div class="section-title">Разведка (клик по чужому чанку)</div>
+      <p style="font-size:11px;color:var(--txt2);font-family:'Share Tech Mono',monospace;line-height:1.8">
+        Кликните по чужому чанку для разведки ($5,000)<br>
+        Кликните по своему чанку для управления
+      </p>
+    </div>
 
+    <!-- RESEARCH TAB -->
+    <div class="sidebar-panel" id="tab-research">
+      <div class="section-title">Военные Технологии</div>
+      <button class="btn" onclick="research('tactics','Тактика', 10000, {dmgBonus:0.1})">📖 Тактика I <span class="cost">$10k</span><span class="req">+10% урон армий</span></button>
+      <button class="btn" onclick="research('armor','Броня', 15000, {defBonus:0.15})">🛡️ Броня I <span class="cost">$15k</span><span class="req">+15% защита</span></button>
+      <button class="btn" onclick="research('logistics','Логистика', 8000, {speedBonus:0.2})">🚛 Логистика I <span class="cost">$8k</span><span class="req">+20% скорость армий</span></button>
+      <button class="btn" onclick="research('intel','Разведка', 5000, {spyCost:-0.5})">🔍 Разведка I <span class="cost">$5k</span><span class="req">-50% стоимость шпионажа</span></button>
+
+      <div class="section-title">Экономические</div>
+      <button class="btn" onclick="research('industry','Индустрия', 12000, {incomeBonus:0.15})">⚙️ Индустрия I <span class="cost">$12k</span><span class="req">+15% доход</span></button>
+      <button class="btn" onclick="research('mining','Горное дело', 7000, {mineBonus:0.2})">⛏️ Горное дело I <span class="cost">$7k</span><span class="req">+20% добыча</span></button>
+    </div>
+
+    <!-- QUEUE TAB -->
+    <div class="sidebar-panel" id="tab-queue">
+      <div class="section-title">Строительство</div>
+      <div id="build-queue"></div>
+      <div class="section-title">Формирование Армий</div>
+      <div id="army-queue"></div>
+    </div>
+
+  </div><!-- /sidebar -->
+
+  <!-- ─── MAP ─────────────────────────────────────── -->
+  <div id="map-viewport">
+    <div id="world-map"></div>
+    <div id="armies-layer" style="position:absolute;top:60px;left:60px;pointer-events:none;z-index:30;"></div>
+  </div>
+
+  <!-- ─── INFO PANEL ────────────────────────────── -->
+  <div id="info-panel">
+    <div id="info-panel-inner">
+      <p style="color:var(--txt2);font-size:12px;font-family:'Share Tech Mono',monospace;text-align:center;margin-top:40px">
+        Кликните на чанк<br>для получения информации
+      </p>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════ ARMY MODAL ══════════════ -->
+<div id="army-modal">
+  <div class="modal-box">
+    <h2>⚔️ ФОРМИРОВАНИЕ АРМИИ</h2>
+
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:16px;font-family:'Share Tech Mono',monospace">
+      Выберите типы юнитов и количество. Армия формируется в столице или выбранном чанке.
+    </div>
+
+    <div class="unit-grid" id="unit-grid"></div>
+
+    <div class="army-builder active" id="army-builder">
+      <div class="section-title" style="margin-top:0">Состав Армии</div>
+      <div id="unit-qty-controls"></div>
+      <div class="army-summary" id="army-summary-box"></div>
+      <div style="margin-bottom:14px">
+        <div class="section-title">Дислокация (ваш чанк)</div>
+        <select id="spawn-chunk" style="background:#000;color:var(--accent);border:1px solid var(--border);padding:8px;width:100%;font-family:'Share Tech Mono',monospace;font-size:12px"></select>
+        <input type="text" id="army-name-input" placeholder="Название армии (напр. 1-я гвардейская)" style="background:#000;color:var(--accent);border:1px solid var(--border);padding:8px;width:100%;font-family:'Share Tech Mono',monospace;font-size:12px;margin-top:6px">
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="closeArmyModal()">ОТМЕНА</button>
+      <button class="modal-btn primary" onclick="createArmy()">СФОРМИРОВАТЬ АРМИЮ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ COMBAT POPUP ═══════════ -->
+<div id="combat-popup">
+  <h4>⚔️ БОЙ</h4>
+  <div class="combat-log" id="combat-log-inner"></div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+<!--                                   SCRIPT                                       -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════ -->
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, collection, query, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, onSnapshot,
+  updateDoc, collection, getDocs, deleteDoc, query, where, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyAxNVY5ys6a6RnavEK1QoTUonTGe4qhrMc",
-        authDomain: "super-strategy.firebaseapp.com",
-        projectId: "super-strategy",
-        storageBucket: "super-strategy.firebasestorage.app",
-        messagingSenderId: "686354557279",
-        appId: "1:686354557279:web:4b56693c307718c4d86eea"
-    };
+// ─── FIREBASE ───────────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyAxNVY5ys6a6RnavEK1QoTUonTGe4qhrMc",
+  authDomain: "super-strategy.firebaseapp.com",
+  projectId: "super-strategy",
+  storageBucket: "super-strategy.firebasestorage.app",
+  messagingSenderId: "686354557279",
+  appId: "1:686354557279:web:4b56693c307718c4d86eea"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────────
+const MAP_W = 50, MAP_H = 35;
+const TILE_PX = 53; // tile size + gap
+const MAP_PAD = 60;
 
-    let userState = null;
-    let selectedLeader = null;
-    const leaders = ['zel','put','trump','net','obama','mod','si','kaz','edr','kim','hus','luk','mak'];
+const RESOURCES = {
+  oil:    { icon: '🛢️', label: 'Нефть',           color: '#e8a040', bg: '#3a2200', cls: 'rb-oil' },
+  metal:  { icon: '⛏️', label: 'Металл',          color: '#8080e8', bg: '#1a1a30', cls: 'rb-metal' },
+  uranium:{ icon: '☢️', label: 'Уран',            color: '#40e890', bg: '#003a20', cls: 'rb-uranium' },
+  rare:   { icon: '💎', label: 'Редкозем. металл', color: '#c040e8', bg: '#2a0040', cls: 'rb-rare' },
+  forest: { icon: '🌲', label: 'Лес',             color: '#40e860', bg: '#003a10', cls: 'rb-forest' },
+  stone:  { icon: '🪨', label: 'Горные породы',   color: '#c0a870', bg: '#302820', cls: 'rb-stone' },
+  coal:   { icon: '⬛', label: 'Уголь',           color: '#909090', bg: '#202020', cls: 'rb-coal' }
+};
+const RES_KEYS = Object.keys(RESOURCES);
+const RES_CHANCE = 0.18;
 
-    // 1. Оффлайн доход (Расчет один раз при входе)
-    async function calculateIncome(data) {
-        const now = Date.now();
-        const last = data.lastUpdate || now;
-        const diff = Math.floor((now - last) / 1000);
-        const incomePerSec = (data.income || 100) / 10; 
-        const earned = diff * incomePerSec;
+// ─── UNIT DEFINITIONS ────────────────────────────────────────────────────────────
+const UNIT_DEFS = {
+  rifleman:  { name:'Стрелок',         icon:'🪖', dmg:8,  hp:15, speed:3, pop:1,  gold:500,   metal:0,   uranium:0, people:1,  time:30,  desc:'Базовая пехота. Дёшево и сердито.' },
+  machinegun:{ name:'Пулемётчик',      icon:'🔫', dmg:18, hp:12, speed:2, pop:1,  gold:1200,  metal:0.2, uranium:0, people:1,  time:60,  desc:'Высокий урон, уязвим в обороне.' },
+  sniper:    { name:'Снайпер',         icon:'🎯', dmg:35, hp:8,  speed:2, pop:1,  gold:2000,  metal:0.1, uranium:0, people:1,  time:90,  desc:'Убивает первым, но хрупок.' },
+  mortar:    { name:'Миномёт',         icon:'💣', dmg:50, hp:10, speed:1, pop:2,  gold:5000,  metal:1,   uranium:0, people:2,  time:180, desc:'Площадной урон. Медленный.' },
+  jeep:      { name:'Джип',           icon:'🚙', dmg:20, hp:25, speed:6, pop:1,  gold:8000,  metal:2,   uranium:0, people:2,  time:120, desc:'Быстрая разведка и прорывы.' },
+  apc:       { name:'Бронетранспортёр',icon:'🚌', dmg:30, hp:60, speed:4, pop:2,  gold:20000, metal:5,   uranium:0, people:3,  time:300, desc:'Перевозит пехоту.' },
+  tank:      { name:'Танк',           icon:'🪖', dmg:90, hp:120,speed:3, pop:3,  gold:50000, metal:10,  uranium:0, people:3,  time:600, desc:'Основа бронетанкового удара.' },
+  howitzer:  { name:'Гаубица',        icon:'💥', dmg:150,hp:40, speed:1, pop:4,  gold:80000, metal:15,  uranium:0, people:4,  time:900, desc:'Артиллерия. Не для фронта.' },
+  aa_gun:    { name:'ЗСУ',            icon:'🎆', dmg:40, hp:30, speed:2, pop:2,  gold:30000, metal:8,   uranium:0, people:2,  time:400, desc:'Эффективна vs авиации.' },
+  helicopter:{ name:'Вертолёт',       icon:'🚁', dmg:120,hp:50, speed:8, pop:2,  gold:120000,metal:20,  uranium:1, people:2,  time:1200,desc:'Воздушный ударник. Нужна авиабаза.' },
+  fighter:   { name:'Истребитель',    icon:'✈️', dmg:180,hp:45, speed:12,pop:2,  gold:200000,metal:30,  uranium:1, people:2,  time:1800,desc:'Господство в воздухе.' },
+  missile:   { name:'Ракетная ПУ',    icon:'🚀', dmg:500,hp:20, speed:1, pop:3,  gold:500000,metal:50,  uranium:5, people:3,  time:3600,desc:'Один удар — катастрофические потери.' },
+};
 
-        if (earned > 1) {
-            log(`С возвращением! Доход за время отсутствия: $${Math.floor(earned).toLocaleString()}`);
-            const newGold = data.gold + earned;
-            await updateDoc(doc(db, "countries", auth.currentUser.uid), { gold: newGold, lastUpdate: now });
-            return newGold;
+// ─── BUILDINGS ──────────────────────────────────────────────────────────────────
+const BUILDING_DEFS = {
+  militia_post: { name:'Пост ополчения', cost:800,   time:60,   income:0,    armyBonus:50 },
+  barracks:     { name:'Казармы',         cost:5000,  time:300,  income:50 },
+  workshop:     { name:'Мастерская',      cost:3000,  time:200,  income:200 },
+  farm:         { name:'Ферма',           cost:2000,  time:180,  income:100,  popBonus:500 },
+  mine_site:    { name:'Рудник',          cost:8000,  time:600,  income:0,    metalPerMin:2 },
+  oil_rig:      { name:'Нефтяная вышка',  cost:15000, time:900,  income:0,    oilPerMin:5 },
+  factory:      { name:'Завод',           cost:20000, time:1200, income:1000 },
+  port:         { name:'Порт',            cost:12000, time:800,  income:500 },
+  bank:         { name:'Банк',            cost:25000, time:1500, income:2000 },
+  armory:       { name:'Арсенал',         cost:10000, time:600,  income:300 },
+  radar:        { name:'Радар',           cost:18000, time:900,  income:0 },
+  air_base:     { name:'Авиабаза',        cost:40000, time:2400, income:0 },
+  fortification:{ name:'Укрепление',      cost:6000,  time:400,  income:0,    defBonus:500 },
+  nuclear_plant:{ name:'Ядерный реактор', cost:80000, time:7200, income:0,    uraniumPerMin:0.5 },
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────────
+let userState = null;
+let myUID = null;
+let selectedLeader = null;
+let worldTiles = {}; // tileId -> {owner, country, resource, population, buildings[], defense}
+let allCountries = {}; // uid -> data
+let myArmies = []; // local army list
+let allArmiesSnapshot = {}; // armyId -> data
+let buildQueue = []; // {type, chunkId, name, finishAt}
+let armyQueue = []; // {name, units, chunkId, finishAt}
+let selectedChunk = null;
+let tech = {}; // researched tech
+
+const LEADERS = [
+  {id:'zel',name:'Зеленський'},{id:'put',name:'Путин'},{id:'trump',name:'Трамп'},
+  {id:'net',name:'Нетаньяху'},{id:'obama',name:'Обама'},{id:'mod',name:'Моди'},
+  {id:'si',name:'Си'},{id:'kaz',name:'Казалис'},{id:'edr',name:'Эрдоган'},
+  {id:'kim',name:'Ким'},{id:'hus',name:'Хусейн'},{id:'luk',name:'Лукашенко'},
+  {id:'mak',name:'Макрон'}
+];
+
+// ─── HELPERS ────────────────────────────────────────────────────────────────────
+function log(msg, cls='') {
+  const l = document.getElementById('log');
+  const d = document.createElement('div');
+  d.className = cls;
+  d.textContent = '> ' + msg;
+  l.prepend(d);
+  if (l.children.length > 80) l.lastChild.remove();
+}
+
+function fmtNum(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(1)+'B';
+  if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'k';
+  return Math.floor(n).toString();
+}
+
+function dist(x1,y1,x2,y2) {
+  return Math.abs(x1-x2) + Math.abs(y1-y2);
+}
+
+function isAdjacentToMine(tx, ty) {
+  const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+  for (const [dx,dy] of dirs) {
+    const nid = `${tx+dx}-${ty+dy}`;
+    if (worldTiles[nid]?.owner === myUID) return true;
+  }
+  return false;
+}
+
+function getTileXY(tileId) {
+  const [x, y] = tileId.split('-').map(Number);
+  return [x, y];
+}
+
+function tileScreenPos(x, y) {
+  return [MAP_PAD + x * TILE_PX, MAP_PAD + y * TILE_PX];
+}
+
+function updateUI() {
+  if (!userState) return;
+  document.getElementById('ui-country').textContent = userState.countryName || '—';
+  document.getElementById('ui-leader').textContent = userState.leaderName || '—';
+  document.getElementById('ui-gold').textContent = fmtNum(userState.gold || 0);
+  document.getElementById('ui-income').textContent = fmtNum((userState.income || 0) / 10);
+  document.getElementById('ui-pop').textContent = fmtNum(userState.population || 0);
+  document.getElementById('ui-chunks').textContent = userState.chunks || 0;
+  document.getElementById('ui-oil').textContent = fmtNum(userState.oil || 0) + 'бар';
+  document.getElementById('ui-metal').textContent = fmtNum(userState.metal || 0);
+  document.getElementById('ui-uranium').textContent = fmtNum(userState.uranium || 0);
+  document.getElementById('ui-rare').textContent = fmtNum(userState.rare || 0);
+}
+
+// ─── MAP INIT ────────────────────────────────────────────────────────────────────
+function generateTileType(x, y) {
+  // Water border + random inland water
+  if (x < 2 || x > MAP_W-3 || y < 2 || y > MAP_H-3) return 'water';
+  // Create continents using simple noise
+  const noise = Math.sin(x * 0.3 + y * 0.5) * Math.cos(x * 0.2 - y * 0.4);
+  return noise < -0.2 ? 'water' : 'land';
+}
+
+function generateResource(x, y) {
+  if (Math.random() > RES_CHANCE) return null;
+  const idx = (x * 7 + y * 13) % RES_KEYS.length;
+  return RES_KEYS[idx];
+}
+
+function generatePopulation(x, y) {
+  // Random base + coastal bonus
+  const coastal = (x < 5 || x > MAP_W-6 || y < 5 || y > MAP_H-6) ? 1.5 : 1;
+  return Math.floor((Math.random() * 8000 + 2000) * coastal);
+}
+
+let tileTypes = {}; // static, generated once
+let tileResources = {}; // static
+
+function initMap() {
+  const mapEl = document.getElementById('world-map');
+  mapEl.innerHTML = '';
+  mapEl.style.gridTemplateColumns = `repeat(${MAP_W}, ${TILE_PX-1}px)`;
+  mapEl.style.gridTemplateRows = `repeat(${MAP_H}, ${TILE_PX-1}px)`;
+
+  for (let y = 0; y < MAP_H; y++) {
+    for (let x = 0; x < MAP_W; x++) {
+      const tileId = `${x}-${y}`;
+      const type = generateTileType(x, y);
+      tileTypes[tileId] = type;
+      if (type === 'land') {
+        tileResources[tileId] = generateResource(x, y);
+      }
+      const tile = document.createElement('div');
+      tile.className = `tile ${type}`;
+      tile.id = `tile-${tileId}`;
+
+      if (type === 'land') {
+        const res = tileResources[tileId];
+        if (res) {
+          const icon = document.createElement('div');
+          icon.className = 'res-icon';
+          icon.textContent = RESOURCES[res].icon;
+          tile.appendChild(icon);
+          tile.title = RESOURCES[res].label;
+          tile.style.background = RESOURCES[res].bg;
         }
-        return data.gold;
+        tile.onclick = () => handleTileClick(tileId);
+      }
+      mapEl.appendChild(tile);
     }
+  }
+}
 
-    // 2. Инициализация карты
-    function initMap() {
-        const map = document.getElementById('world-map');
-        map.innerHTML = '';
-        for (let y = 0; y < 30; y++) {
-            for (let x = 0; x < 40; x++) {
-                const tile = document.createElement('div');
-                const isWater = (y < 3 || y > 26 || Math.random() < 0.15);
-                tile.className = `tile ${isWater ? 'water' : 'land'}`;
-                tile.id = `tile-${x}-${y}`;
-                tile.onclick = () => handleTileClick(x, y, isWater);
-                map.appendChild(tile);
-            }
-        }
+function refreshTileVisuals() {
+  for (const [tileId, data] of Object.entries(worldTiles)) {
+    const el = document.getElementById(`tile-${tileId}`);
+    if (!el) continue;
+    el.innerHTML = '';
+    const res = tileResources[tileId];
+    if (res) {
+      const icon = document.createElement('div');
+      icon.className = 'res-icon';
+      icon.textContent = RESOURCES[res].icon;
+      el.appendChild(icon);
     }
-
-    // 3. Клик по чанку (Захват или Шпионаж)
-    async function handleTileClick(x, y, isWater) {
-        if (isWater) return;
-        
-        const tileRef = doc(db, "world_map", `${x}-${y}`);
-        const snap = await getDoc(tileRef);
-
-        if (snap.exists()) {
-            const data = snap.data();
-            if (data.owner === auth.currentUser.uid) {
-                log(`Ваша территория: чанк ${x}:${y}`);
-            } else {
-                // ШПИОНАЖ
-                if (userState.gold < 5000) return log("Недостаточно денег для разведки!");
-                const targetDoc = await getDoc(doc(db, "countries", data.owner));
-                const targetData = targetDoc.data();
-                log(`РАЗВЕДКА [${data.country}]: Лидер: ${targetData.leaderName}, Бюджет: $${targetData.gold.toLocaleString()}, Армия: ${targetData.army} чел.`);
-                await updateDoc(doc(db, "countries", auth.currentUser.uid), { gold: userState.gold - 5000 });
-            }
-        } else {
-            // ЗАХВАТ
-            if (userState.gold < 10000) return log("Нужно $10,000 для захвата чанка!");
-            await setDoc(tileRef, { owner: auth.currentUser.uid, country: userState.countryName });
-            await updateDoc(doc(db, "countries", auth.currentUser.uid), { 
-                gold: userState.gold - 10000, 
-                chunks: (userState.chunks || 0) + 1,
-                lastUpdate: Date.now()
-            });
-            log(`Чанк ${x}:${y} присоединен к вашей державе!`);
-        }
+    if (data.owner === myUID) {
+      el.className = `tile land mine ${data.isCapital ? 'capital' : ''}`;
+    } else {
+      el.className = 'tile land enemy';
     }
+    const lbl = document.createElement('div');
+    lbl.className = 'tile-label';
+    lbl.textContent = (data.country || '').substring(0,4).toUpperCase();
+    el.appendChild(lbl);
+    const pop = document.createElement('div');
+    pop.className = 'pop-dot';
+    pop.textContent = fmtNum(data.population || 0);
+    el.appendChild(pop);
+  }
+}
 
-    // 4. Покупка юнитов
-    window.buyUnit = async (type, price) => {
-        if (userState.gold < price) return log("Бюджет пуст!");
-        let upd = { gold: userState.gold - price, lastUpdate: Date.now() };
-        if (type === 'infantry') upd.army = userState.army + 10;
-        if (type === 'tank') upd.army = userState.army + 250;
-        if (type === 'factory') upd.income = (userState.income || 100) + 500;
-        
-        await updateDoc(doc(db, "countries", auth.currentUser.uid), upd);
-        log(`Успешно: закуплено ${type}`);
-    };
+// ─── TILE CLICK ──────────────────────────────────────────────────────────────────
+async function handleTileClick(tileId) {
+  if (!myUID || !userState) return;
+  const [tx, ty] = getTileXY(tileId);
+  const tData = worldTiles[tileId];
+  selectedChunk = tileId;
+  highlightTile(tileId);
 
-    function log(msg) {
-        const l = document.getElementById('log');
-        l.innerHTML = `> ${msg}<br>` + l.innerHTML;
-    }
+  if (tData?.owner === myUID) {
+    showMyChunkPanel(tileId);
+  } else if (tData?.owner) {
+    // Occupied by enemy
+    showEnemyPanel(tileId);
+  } else {
+    // Free land
+    showFreeLandPanel(tileId, tx, ty);
+  }
+}
 
-    // 5. Выбор лидеров и запуск
-    async function loadLeaders() {
-        const snap = await getDocs(collection(db, "countries"));
-        const taken = []; snap.forEach(d => taken.push(d.data().leaderImgId));
-        const picker = document.getElementById('leader-picker');
-        picker.innerHTML = '';
-        leaders.forEach(l => {
-            const isT = taken.includes(l);
-            const div = document.createElement('div');
-            div.className = `leader-card ${isT ? 'taken' : ''}`;
-            div.innerHTML = `<img src="leaders/${l}.png">`;
-            if (!isT) div.onclick = () => {
-                document.querySelectorAll('.leader-card').forEach(c => c.classList.remove('selected'));
-                div.classList.add('selected'); selectedLeader = l;
-            };
-            picker.appendChild(div);
-        });
-    }
+function highlightTile(tileId) {
+  document.querySelectorAll('.tile.selected-tile').forEach(t => t.classList.remove('selected-tile'));
+  const el = document.getElementById(`tile-${tileId}`);
+  if (el) el.classList.add('selected-tile');
+}
 
-    document.getElementById('start-game').onclick = async () => {
-        const pN = document.getElementById('player-name').value;
-        const cN = document.getElementById('country-name').value;
-        if (!pN || !cN || !selectedLeader) return alert("Штаб требует полные данные!");
+function showMyChunkPanel(tileId) {
+  const tData = worldTiles[tileId];
+  const res = tileResources[tileId];
+  const [x, y] = getTileXY(tileId);
+  const buildings = tData.buildings || [];
+  const pop = tData.population || 0;
+  const def = tData.defense || 0;
 
-        let sX, sY, ok = false;
-        while(!ok) {
-            sX = Math.floor(Math.random()*40); sY = Math.floor(Math.random()*30);
-            const t = document.getElementById(`tile-${sX}-${sY}`);
-            if (t && t.classList.contains('land')) ok = true;
-        }
+  let html = `
+    <div class="info-header">
+      <img class="info-portrait" src="leaders/${userState.leaderImgId}.png" onerror="this.style.display='none'">
+      <div>
+        <div class="info-title">${userState.countryName}</div>
+        <div class="info-sub">👤 ${userState.leaderName}</div>
+        <div class="info-sub" style="color:var(--accent2)">ВАША ТЕРРИТОРИЯ</div>
+      </div>
+    </div>
+    <div class="info-row"><span class="lbl">Координаты</span><span class="val">${x}:${y}</span></div>
+    <div class="info-row"><span class="lbl">Население</span><span class="val green">${pop.toLocaleString()}</span></div>
+    <div class="info-row"><span class="lbl">Оборона</span><span class="val yellow">${def}</span></div>
+  `;
+  if (res) {
+    const r = RESOURCES[res];
+    html += `<div class="info-row"><span class="lbl">Ресурс</span><span class="val"><span class="resource-badge ${r.cls}">${r.icon} ${r.label}</span></span></div>`;
+  }
+  if (tData.isCapital) {
+    html += `<div class="info-row"><span class="lbl">Тип</span><span class="val" style="color:var(--accent2)">★ СТОЛИЦА</span></div>`;
+  }
+  if (buildings.length) {
+    html += `<div class="info-row" style="align-items:flex-start"><span class="lbl">Постройки</span><span class="val" style="text-align:right;font-size:10px">${buildings.map(b => BUILDING_DEFS[b]?.name || b).join('<br>')}</span></div>`;
+  }
 
-        const data = { leaderName: pN, countryName: cN, leaderImgId: selectedLeader, gold: 50000, army: 100, chunks: 1, income: 200, lastUpdate: Date.now() };
-        await setDoc(doc(db, "countries", auth.currentUser.uid), data);
-        await setDoc(doc(db, "world_map", `${sX}-${sY}`), { owner: auth.currentUser.uid, country: cN });
-        document.getElementById('setup-screen').classList.add('hidden');
-    };
-
-    // 6. Слушатели
-    signInAnonymously(auth);
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            initMap();
-            await loadLeaders();
-            const docRef = doc(db, "countries", user.uid);
-            const uDoc = await getDoc(docRef);
-            
-            if (uDoc.exists()) {
-                await calculateIncome(uDoc.data());
-                onSnapshot(docRef, (s) => {
-                    userState = s.data();
-                    document.getElementById('ui-gold').innerText = Math.floor(userState.gold).toLocaleString();
-                    document.getElementById('ui-army').innerText = userState.army;
-                    document.getElementById('ui-country').innerText = userState.countryName;
-                    document.getElementById('ui-leader').innerText = userState.leaderName;
-                    document.getElementById('ui-chunks').innerText = userState.chunks;
-                    document.getElementById('setup-screen').classList.add('hidden');
-                });
-            } else {
-                document.getElementById('setup-screen').classList.remove('hidden');
-            }
-
-            onSnapshot(collection(db, "world_map"), (s) => {
-                s.forEach(c => {
-                    const d = c.data();
-                    const t = document.getElementById(`tile-${c.id}`);
-                    if (t) {
-                        t.className = `tile land ${d.owner === auth.currentUser.uid ? 'mine' : 'enemy'}`;
-                        t.innerText = d.country.substring(0,3).toUpperCase();
-                    }
-                });
-            });
-        }
+  const myArmiesHere = myArmies.filter(a => a.location === tileId && a.status === 'idle');
+  if (myArmiesHere.length) {
+    html += `<div class="section-title">Армии здесь</div>`;
+    myArmiesHere.forEach(a => {
+      html += `<div class="build-queue-item"><span>${a.name}</span><button onclick="selectArmyForMove('${a.id}')" style="background:var(--accent);color:#000;border:none;padding:3px 8px;cursor:pointer;font-size:10px;font-family:'Oswald',sans-serif">ДВИГАТЬ</button></div>`;
     });
+  }
+
+  html += `<div class="info-actions">
+    <button class="btn success" onclick="closeInfoPanel()">✕ ЗАКРЫТЬ</button>
+  </div>`;
+
+  showInfoPanel(html);
+}
+
+async function showEnemyPanel(tileId) {
+  const tData = worldTiles[tileId];
+  const res = tileResources[tileId];
+  const [x, y] = getTileXY(tileId);
+  const ownerUID = tData.owner;
+  const country = allCountries[ownerUID];
+  const spyCost = Math.floor(5000 * (1 - (tech.intel?.spyCost || 0)));
+
+  let html = `
+    <div class="info-header">
+      <img class="info-portrait" src="leaders/${country?.leaderImgId || 'unknown'}.png" onerror="this.style.display='none'">
+      <div>
+        <div class="info-title">${tData.country || '?'}</div>
+        <div class="info-sub">👤 ${country?.leaderName || 'Неизвестно'}</div>
+        <div class="info-sub" style="color:var(--red)">ЧУЖАЯ ТЕРРИТОРИЯ</div>
+      </div>
+    </div>
+    <div class="info-row"><span class="lbl">Координаты</span><span class="val">${x}:${y}</span></div>
+    <div class="info-row"><span class="lbl">Население</span><span class="val red">${(tData.population||0).toLocaleString()}</span></div>
+    <div class="info-row"><span class="lbl">Оборона</span><span class="val red">${tData.defense || '???'}</span></div>
+  `;
+  if (res) {
+    const r = RESOURCES[res];
+    html += `<div class="info-row"><span class="lbl">Ресурс</span><span class="val"><span class="resource-badge ${r.cls}">${r.icon} ${r.label}</span></span></div>`;
+  }
+  if (country) {
+    html += `
+      <div class="section-title">Глобальные данные</div>
+      <div class="info-row"><span class="lbl">Бюджет</span><span class="val yellow">$${fmtNum(country.gold)}</span></div>
+      <div class="info-row"><span class="lbl">Армия</span><span class="val red">${fmtNum(country.army || 0)}</span></div>
+      <div class="info-row"><span class="lbl">Чанков</span><span class="val">${country.chunks || 0}</span></div>
+    `;
+  }
+  html += `<div class="info-actions">
+    <button class="btn danger" onclick="doSpy('${tileId}')">🔍 Разведка <span class="cost">$${fmtNum(spyCost)}</span></button>
+    <button class="btn danger" onclick="prepareAttack('${tileId}')">⚔️ Атаковать армией</button>
+  </div>`;
+
+  showInfoPanel(html);
+}
+
+function showFreeLandPanel(tileId, tx, ty) {
+  const res = tileResources[tileId];
+  const isAdj = isAdjacentToMine(tx, ty);
+  const pop = Math.floor(generatePopulation(tx,ty));
+
+  let html = `
+    <div class="info-header">
+      <div style="font-size:36px">🗺️</div>
+      <div>
+        <div class="info-title">Свободная земля</div>
+        <div class="info-sub">${tx}:${ty}</div>
+      </div>
+    </div>
+    <div class="info-row"><span class="lbl">Население</span><span class="val">${pop.toLocaleString()}</span></div>
+  `;
+  if (res) {
+    const r = RESOURCES[res];
+    html += `<div class="info-row"><span class="lbl">Ресурс</span><span class="val"><span class="resource-badge ${r.cls}">${r.icon} ${r.label}</span></span></div>`;
+  }
+  if (!isAdj) {
+    html += `<div style="color:var(--red);font-size:11px;font-family:'Share Tech Mono',monospace;margin-top:8px">⚠ Не граничит с вашей территорией.<br>Можно захватить только военным путём.</div>`;
+  }
+  html += `<div class="info-actions">
+    ${isAdj ? `<button class="btn success" onclick="captureFreeTile('${tileId}')">🏴 Захватить <span class="cost">$10k</span></button>` : ''}
+    <button class="btn danger" onclick="prepareAttack('${tileId}')">⚔️ Послать армию</button>
+  </div>`;
+
+  showInfoPanel(html);
+}
+
+function showInfoPanel(html) {
+  const inner = document.getElementById('info-panel-inner');
+  inner.innerHTML = html;
+}
+
+function closeInfoPanel() {
+  showInfoPanel('<p style="color:var(--txt2);font-size:12px;font-family:\'Share Tech Mono\',monospace;text-align:center;margin-top:40px">Кликните на чанк<br>для получения информации</p>');
+  document.querySelectorAll('.tile.selected-tile').forEach(t=>t.classList.remove('selected-tile'));
+}
+
+// ─── CAPTURE / SPY ───────────────────────────────────────────────────────────────
+window.captureFreeTile = async function(tileId) {
+  if (!userState || userState.gold < 10000) return log('Нужно $10,000 для захвата!', 'log-err');
+  const [x, y] = getTileXY(tileId);
+  const pop = generatePopulation(x, y);
+  const res = tileResources[tileId];
+
+  await setDoc(doc(db, 'world_map', tileId), {
+    owner: myUID,
+    country: userState.countryName,
+    population: Math.floor(pop),
+    defense: 100,
+    buildings: [],
+    isCapital: false,
+    resource: res || null,
+    lastUpdate: Date.now()
+  });
+  await updateDoc(doc(db, 'countries', myUID), {
+    gold: userState.gold - 10000,
+    chunks: (userState.chunks || 0) + 1,
+    population: (userState.population || 0) + Math.floor(pop * 0.5),
+    lastUpdate: Date.now()
+  });
+  log(`Чанк ${tileId} присоединён! Население: ${Math.floor(pop).toLocaleString()}`, 'log-info');
+  closeInfoPanel();
+};
+
+window.doSpy = async function(tileId) {
+  const spyCost = Math.floor(5000 * (1 - (tech.intel?.spyCost || 0)));
+  if (!userState || userState.gold < spyCost) return log(`Нужно $${spyCost} для разведки`, 'log-err');
+  await updateDoc(doc(db, 'countries', myUID), { gold: userState.gold - spyCost });
+  const tData = worldTiles[tileId];
+  const country = allCountries[tData.owner];
+  if (country) {
+    log(`[РАЗВЕДКА] ${tData.country}: бюджет $${fmtNum(country.gold)}, армия ${fmtNum(country.army)}, чанков ${country.chunks}`, 'log-info');
+  }
+};
+
+window.prepareAttack = function(targetTileId) {
+  if (!myArmies.length) return log('Нет доступных армий! Создайте армию во вкладке АРМИИ.', 'log-err');
+  const idle = myArmies.filter(a => a.status === 'idle');
+  if (!idle.length) return log('Все армии заняты!', 'log-warn');
+
+  const inner = document.getElementById('info-panel-inner');
+  let opts = idle.map(a => `<option value="${a.id}">${a.name} (Сила: ${calcArmyPower(a.units)})</option>`).join('');
+  inner.innerHTML += `
+    <div class="section-title">Выбрать армию для атаки:</div>
+    <select id="attack-army-sel" style="background:#000;color:var(--accent);border:1px solid var(--border);padding:8px;width:100%;font-family:'Share Tech Mono',monospace;font-size:12px;margin-bottom:8px">
+      ${opts}
+    </select>
+    <button class="btn danger" onclick="sendArmy(document.getElementById('attack-army-sel').value,'${targetTileId}')">🚀 ПОСЛАТЬ</button>
+  `;
+};
+
+window.sendArmy = async function(armyId, targetTileId) {
+  const army = myArmies.find(a => a.id === armyId);
+  if (!army) return log('Армия не найдена', 'log-err');
+  const [sx, sy] = getTileXY(army.location);
+  const [tx, ty] = getTileXY(targetTileId);
+  const d = dist(sx, sy, tx, ty);
+  const speed = calcArmySpeed(army.units) * (1 + (tech.logistics?.speedBonus || 0));
+  // 1 tile per speed unit per minute simulated as seconds for game
+  const travelSecs = Math.max(10, Math.floor(d * 60 / speed));
+  const arriveAt = Date.now() + travelSecs * 1000;
+
+  await updateDoc(doc(db, 'armies', armyId), {
+    status: 'marching',
+    target: targetTileId,
+    arriveAt: arriveAt,
+    origin: army.location
+  });
+  log(`${army.name} выдвинулась к ${targetTileId}. Прибытие через ${Math.ceil(travelSecs/60)} мин.`, 'log-info');
+  closeInfoPanel();
+};
+
+// ─── ARMY MODAL ─────────────────────────────────────────────────────────────────
+const unitQty = {};
+
+window.openArmyModal = function() {
+  renderUnitGrid();
+  renderSpawnChunkSelect();
+  renderArmySummary();
+  document.getElementById('army-modal').classList.add('open');
+};
+
+window.closeArmyModal = function() {
+  document.getElementById('army-modal').classList.remove('open');
+};
+
+function renderUnitGrid() {
+  const grid = document.getElementById('unit-grid');
+  grid.innerHTML = '';
+  Object.entries(UNIT_DEFS).forEach(([key, u]) => {
+    const div = document.createElement('div');
+    div.className = 'unit-card';
+    div.id = `uc-${key}`;
+    div.innerHTML = `
+      <div class="uname">${u.icon} ${u.name}</div>
+      <div class="ustat">
+        ❤️ <span>${u.hp}</span> HP &nbsp; ⚔️ <span>${u.dmg}</span> Урон<br>
+        🏃 <span>${u.speed}</span> Скор. &nbsp; 👤 <span>${u.people}</span> чел<br>
+        💵 <span>$${fmtNum(u.gold)}</span>&nbsp; ⛏️ <span>${u.metal}т</span>&nbsp; ☢️ <span>${u.uranium}кг</span><br>
+        ⏰ <span>${formatTime(u.time)}</span><br>
+        <em style="color:#7a8898;font-size:9px">${u.desc}</em>
+      </div>`;
+    div.onclick = () => {
+      div.classList.toggle('selected');
+      if (!unitQty[key]) unitQty[key] = 0;
+      renderQtyControls();
+    };
+    grid.appendChild(div);
+  });
+}
+
+function renderQtyControls() {
+  const sel = Object.keys(UNIT_DEFS).filter(k => document.getElementById(`uc-${k}`)?.classList.contains('selected'));
+  const ctrl = document.getElementById('unit-qty-controls');
+  ctrl.innerHTML = '';
+  sel.forEach(key => {
+    const u = UNIT_DEFS[key];
+    if (!unitQty[key]) unitQty[key] = 1;
+    const row = document.createElement('div');
+    row.className = 'qty-row';
+    row.innerHTML = `
+      <label>${u.icon} ${u.name}</label>
+      <input type="range" min="0" max="200" value="${unitQty[key]}" id="qty-${key}">
+      <div class="qty-val" id="qv-${key}">${unitQty[key]}</div>`;
+    ctrl.appendChild(row);
+    document.getElementById(`qty-${key}`).oninput = (e) => {
+      unitQty[key] = parseInt(e.target.value);
+      document.getElementById(`qv-${key}`).textContent = unitQty[key];
+      renderArmySummary();
+    };
+  });
+  renderArmySummary();
+}
+
+function renderArmySummary() {
+  const box = document.getElementById('army-summary-box');
+  const sel = Object.keys(UNIT_DEFS).filter(k => document.getElementById(`uc-${k}`)?.classList.contains('selected'));
+  let totalGold = 0, totalMetal = 0, totalUranium = 0, totalPeople = 0, totalDmg = 0, totalHp = 0, totalTime = 0, totalUnits = 0;
+  sel.forEach(key => {
+    const u = UNIT_DEFS[key];
+    const qty = unitQty[key] || 0;
+    totalGold += u.gold * qty;
+    totalMetal += u.metal * qty;
+    totalUranium += u.uranium * qty;
+    totalPeople += u.people * qty;
+    totalDmg += u.dmg * qty;
+    totalHp += u.hp * qty;
+    totalTime = Math.max(totalTime, u.time * Math.ceil(qty / 5));
+    totalUnits += qty;
+  });
+
+  const gold = userState?.gold || 0;
+  const metal = userState?.metal || 0;
+  const uranium = userState?.uranium || 0;
+  const pop = userState?.population || 0;
+
+  const canAfford = gold >= totalGold && metal >= totalMetal && uranium >= totalUranium && pop >= totalPeople;
+
+  box.innerHTML = `
+    <div class="s-row ${gold<totalGold?'warn':'ok'}"><span>💵 Стоимость</span><span>$${fmtNum(totalGold)} / $${fmtNum(gold)}</span></div>
+    <div class="s-row ${metal<totalMetal?'warn':'ok'}"><span>⛏️ Металл</span><span>${totalMetal.toFixed(1)}т / ${fmtNum(metal)}т</span></div>
+    <div class="s-row ${uranium<totalUranium?'warn':'ok'}"><span>☢️ Уран</span><span>${totalUranium.toFixed(1)}кг / ${fmtNum(uranium)}кг</span></div>
+    <div class="s-row ${pop<totalPeople?'warn':'ok'}"><span>👥 Людей</span><span>${totalPeople} / ${fmtNum(pop)}</span></div>
+    <div class="s-row"><span>🗡️ Сила атаки</span><span>${totalDmg}</span></div>
+    <div class="s-row"><span>🛡️ Сила защиты</span><span>${totalHp}</span></div>
+    <div class="s-row"><span>📦 Юнитов</span><span>${totalUnits}</span></div>
+    <div class="s-row"><span>⏰ Время формир.</span><span>${formatTime(totalTime)}</span></div>
+    <div class="s-row" style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px">
+      <span>Статус</span><span style="color:${canAfford?'var(--accent2)':'var(--red)'}">${canAfford?'✓ ГОТОВА К ФОРМИРОВ.':'✗ НЕХВАТАЕТ РЕСУРСОВ'}</span>
+    </div>
+  `;
+}
+
+function renderSpawnChunkSelect() {
+  const sel = document.getElementById('spawn-chunk');
+  sel.innerHTML = '';
+  const myChunks = Object.entries(worldTiles).filter(([,d]) => d.owner === myUID);
+  myChunks.forEach(([id, d]) => {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = `${id} — ${d.isCapital ? '★ Столица' : 'Чанк'} (нас. ${fmtNum(d.population||0)})`;
+    sel.appendChild(opt);
+  });
+}
+
+window.createArmy = async function() {
+  const sel = Object.keys(UNIT_DEFS).filter(k => document.getElementById(`uc-${k}`)?.classList.contains('selected'));
+  if (!sel.length) return log('Выберите хотя бы один тип юнитов!', 'log-err');
+
+  let units = {};
+  let totalGold = 0, totalMetal = 0, totalUranium = 0, totalPeople = 0, totalDmg = 0, totalHp = 0, totalTime = 0, totalUnits = 0;
+  sel.forEach(key => {
+    const qty = unitQty[key] || 0;
+    if (qty > 0) {
+      units[key] = qty;
+      const u = UNIT_DEFS[key];
+      totalGold += u.gold * qty;
+      totalMetal += u.metal * qty;
+      totalUranium += u.uranium * qty;
+      totalPeople += u.people * qty;
+      totalDmg += u.dmg * qty;
+      totalHp += u.hp * qty;
+      totalTime = Math.max(totalTime, u.time * Math.ceil(qty/5));
+      totalUnits += qty;
+    }
+  });
+  if (totalUnits === 0) return log('Нет юнитов с количеством > 0', 'log-err');
+
+  const gold = userState?.gold || 0;
+  if (gold < totalGold) return log(`Нехватает денег: $${fmtNum(totalGold - gold)}`, 'log-err');
+  if ((userState?.metal||0) < totalMetal) return log(`Нехватает металла: ${(totalMetal-(userState?.metal||0)).toFixed(1)}т`, 'log-err');
+  if ((userState?.uranium||0) < totalUranium) return log(`Нехватает урана`, 'log-err');
+
+  const chunkId = document.getElementById('spawn-chunk').value;
+  const name = document.getElementById('army-name-input').value || `Армия #${Date.now()%10000}`;
+  const finishAt = Date.now() + totalTime * 1000;
+
+  // Deduct resources
+  const upd = {
+    gold: gold - totalGold,
+    metal: (userState.metal||0) - totalMetal,
+    uranium: (userState.uranium||0) - totalUranium,
+    population: (userState.population||0) - totalPeople,
+    lastUpdate: Date.now()
+  };
+  await updateDoc(doc(db, 'countries', myUID), upd);
+
+  // Create army doc in queue
+  const armyId = `army_${myUID}_${Date.now()}`;
+  await setDoc(doc(db, 'armies', armyId), {
+    id: armyId,
+    owner: myUID,
+    country: userState.countryName,
+    name,
+    units,
+    location: chunkId,
+    status: 'forming',
+    finishAt,
+    dmg: totalDmg,
+    hp: totalHp,
+    origin: chunkId
+  });
+
+  log(`Формирование "${name}" начато. Готово через ${formatTime(totalTime)}.`, 'log-info');
+  closeArmyModal();
+  switchTab('queue');
+};
+
+// ─── BUILDINGS ───────────────────────────────────────────────────────────────────
+window.buyBuilding = async function(type, cost) {
+  if (!userState || userState.gold < cost) return log(`Нехватает денег: нужно $${fmtNum(cost)}`, 'log-err');
+  if (!selectedChunk) return log('Выберите свой чанк на карте!', 'log-warn');
+  const tData = worldTiles[selectedChunk];
+  if (!tData || tData.owner !== myUID) return log('Выберите ВАШ чанк!', 'log-warn');
+  const buildings = tData.buildings || [];
+  if (buildings.includes(type)) return log('Такое здание уже есть в этом чанке!', 'log-warn');
+
+  const def = BUILDING_DEFS[type];
+  if (!def) return;
+  const finishAt = Date.now() + def.time * 1000;
+
+  await updateDoc(doc(db, 'countries', myUID), { gold: userState.gold - cost });
+
+  // Queue item stored in Firestore
+  const qid = `bq_${myUID}_${Date.now()}`;
+  await setDoc(doc(db, 'build_queue', qid), {
+    id: qid,
+    owner: myUID,
+    type,
+    chunkId: selectedChunk,
+    name: def.name,
+    finishAt,
+    income: def.income || 0
+  });
+
+  log(`Строительство "${def.name}" в чанке ${selectedChunk} начато. Готово через ${formatTime(def.time)}.`, 'log-info');
+};
+
+// ─── RESEARCH ────────────────────────────────────────────────────────────────────
+window.research = async function(key, name, cost, bonuses) {
+  if (!userState || userState.gold < cost) return log(`Нехватает: нужно $${fmtNum(cost)}`, 'log-err');
+  if (tech[key]) return log(`${name} уже исследовано`, 'log-warn');
+  await updateDoc(doc(db, 'countries', myUID), { gold: userState.gold - cost, [`tech.${key}`]: true });
+  tech[key] = bonuses;
+  log(`Исследование "${name}" завершено!`, 'log-info');
+};
+
+// ─── ARMY POWER CALC ─────────────────────────────────────────────────────────────
+function calcArmyPower(units) {
+  let dmg = 0;
+  Object.entries(units || {}).forEach(([key, qty]) => {
+    dmg += (UNIT_DEFS[key]?.dmg || 0) * qty;
+  });
+  return Math.floor(dmg * (1 + (tech.tactics?.dmgBonus || 0)));
+}
+
+function calcArmyHp(units) {
+  let hp = 0;
+  Object.entries(units || {}).forEach(([key, qty]) => {
+    hp += (UNIT_DEFS[key]?.hp || 0) * qty;
+  });
+  return Math.floor(hp * (1 + (tech.armor?.defBonus || 0)));
+}
+
+function calcArmySpeed(units) {
+  let minSpeed = 999;
+  Object.entries(units || {}).forEach(([key, qty]) => {
+    if (qty > 0) minSpeed = Math.min(minSpeed, UNIT_DEFS[key]?.speed || 1);
+  });
+  return minSpeed === 999 ? 1 : minSpeed;
+}
+
+// ─── COMBAT ──────────────────────────────────────────────────────────────────────
+async function resolveCombat(armyId, targetTileId) {
+  const army = allArmiesSnapshot[armyId];
+  if (!army) return;
+  const tData = worldTiles[targetTileId];
+  const combatLog = [];
+
+  let atkDmg = calcArmyPower(army.units);
+  let atkHp = calcArmyHp(army.units);
+  const defDmg = tData ? (tData.defense || 100) : 50;
+  const defHp = tData ? ((tData.population || 500) * 0.5 + (tData.defense || 100)) : 500;
+
+  let atkHpLeft = atkHp, defHpLeft = defHp;
+  let rounds = 0;
+
+  combatLog.push(`⚔️ ${army.name} атакует ${targetTileId}`);
+  combatLog.push(`Атака: ${atkDmg} урон, ${atkHp} HP`);
+  combatLog.push(`Оборона: ${Math.floor(defDmg)} урон, ${Math.floor(defHp)} HP`);
+
+  while (atkHpLeft > 0 && defHpLeft > 0 && rounds < 20) {
+    const atkRoll = atkDmg * (0.7 + Math.random() * 0.6);
+    const defRoll = defDmg * (0.7 + Math.random() * 0.6);
+    defHpLeft -= atkRoll;
+    atkHpLeft -= defRoll;
+    rounds++;
+    combatLog.push(`Раунд ${rounds}: ⚔️${Math.floor(atkRoll)} 🛡️${Math.floor(defRoll)}`);
+  }
+
+  const attackerWins = defHpLeft <= 0;
+  const casualtyRatio = Math.min(0.95, Math.max(0.05, 1 - (atkHpLeft / atkHp)));
+
+  // Apply casualties to units
+  let survivingUnits = {};
+  let totalCasualties = 0;
+  Object.entries(army.units).forEach(([key, qty]) => {
+    const lost = Math.floor(qty * casualtyRatio * (0.6 + Math.random() * 0.8));
+    const survived = Math.max(0, qty - lost);
+    if (survived > 0) survivingUnits[key] = survived;
+    totalCasualties += lost;
+  });
+
+  combatLog.push(attackerWins ? `✅ ПОБЕДА! Потери: ${totalCasualties}` : `❌ ОТСТУПЛЕНИЕ! Потери: ${totalCasualties}`);
+
+  // Show combat popup
+  const popup = document.getElementById('combat-popup');
+  const logEl = document.getElementById('combat-log-inner');
+  logEl.innerHTML = combatLog.map(l => `<div class="${l.startsWith('✅')?'win':l.startsWith('❌')?'miss':''}">${l}</div>`).join('');
+  popup.classList.add('show');
+  setTimeout(() => popup.classList.remove('show'), 12000);
+
+  if (attackerWins) {
+    // Capture tile
+    const newPop = Math.floor((tData?.population || 1000) * (0.4 + Math.random() * 0.3));
+    await setDoc(doc(db, 'world_map', targetTileId), {
+      owner: myUID,
+      country: userState.countryName,
+      population: newPop,
+      defense: 50,
+      buildings: [],
+      isCapital: false,
+      resource: tileResources[targetTileId] || null,
+      lastUpdate: Date.now()
+    });
+    // Update chunk count
+    const wasEnemy = tData?.owner && tData.owner !== myUID;
+    await updateDoc(doc(db, 'countries', myUID), {
+      chunks: (userState.chunks || 0) + (tData?.owner ? 0 : 1),
+      population: (userState.population || 0) + newPop
+    });
+    if (wasEnemy) {
+      // Decrement enemy
+      const enemyRef = doc(db, 'countries', tData.owner);
+      const enemyDoc = await getDoc(enemyRef);
+      if (enemyDoc.exists()) {
+        await updateDoc(enemyRef, { chunks: Math.max(0, (enemyDoc.data().chunks||1)-1) });
+      }
+    }
+    log(`ПОБЕДА! ${targetTileId} захвачен. Потери: ${totalCasualties}`, 'log-info');
+  } else {
+    log(`Армия "${army.name}" отступила. Потери: ${totalCasualties}`, 'log-err');
+  }
+
+  // Update army
+  if (Object.keys(survivingUnits).length > 0) {
+    await updateDoc(doc(db, 'armies', armyId), {
+      status: 'idle',
+      units: survivingUnits,
+      location: attackerWins ? targetTileId : army.origin,
+      target: null,
+      arriveAt: null
+    });
+  } else {
+    await deleteDoc(doc(db, 'armies', armyId));
+    log(`Армия "${army.name}" уничтожена!`, 'log-err');
+  }
+}
+
+// ─── ARMY RENDER ON MAP ──────────────────────────────────────────────────────────
+function renderArmiesOnMap() {
+  const layer = document.getElementById('armies-layer');
+  layer.innerHTML = '';
+
+  Object.values(allArmiesSnapshot).forEach(army => {
+    const isMyArmy = army.owner === myUID;
+    let locId = army.location;
+    if (army.status === 'marching' && army.target && army.arriveAt) {
+      // Interpolate position
+      const now = Date.now();
+      const total = army.arriveAt - (army.arriveAt - (army.finishAt_orig || army.arriveAt));
+      const progress = Math.min(1, 1 - (army.arriveAt - now) / Math.max(1, army.arriveAt - Date.now() + 5000));
+      const [sx, sy] = getTileXY(army.origin || army.location);
+      const [tx, ty] = getTileXY(army.target);
+      const cx = sx + (tx - sx) * progress;
+      const cy = sy + (ty - sy) * progress;
+      const [px, py] = [MAP_PAD + cx * TILE_PX + 14, MAP_PAD + cy * TILE_PX + 14];
+
+      const marker = document.createElement('div');
+      marker.className = `army-unit-marker ${isMyArmy ? '' : 'enemy-army'}`;
+      marker.style.left = px + 'px';
+      marker.style.top = py + 'px';
+      marker.style.pointerEvents = 'all';
+      marker.textContent = '⚔️';
+      marker.setAttribute('data-tooltip', `${army.name} | ${calcArmyPower(army.units)} сила`);
+      layer.appendChild(marker);
+    } else if (locId) {
+      const [lx, ly] = getTileXY(locId);
+      const [px, py] = tileScreenPos(lx, ly);
+      const marker = document.createElement('div');
+      marker.className = `army-unit-marker ${isMyArmy ? '' : 'enemy-army'}`;
+      marker.style.left = (px + 14) + 'px';
+      marker.style.top = (py + 14) + 'px';
+      marker.style.pointerEvents = 'all';
+      marker.textContent = isMyArmy ? '🪖' : '💀';
+      marker.setAttribute('data-tooltip', `${army.name}`);
+      layer.appendChild(marker);
+    }
+  });
+}
+
+// ─── ARMY LIST IN SIDEBAR ────────────────────────────────────────────────────────
+function renderArmyList() {
+  const listEl = document.getElementById('army-list');
+  listEl.innerHTML = '';
+  myArmies = Object.values(allArmiesSnapshot).filter(a => a.owner === myUID);
+  if (!myArmies.length) {
+    listEl.innerHTML = '<p style="color:var(--txt2);font-size:11px;font-family:\'Share Tech Mono\',monospace">Нет армий. Создайте армию выше.</p>';
+    return;
+  }
+  myArmies.forEach(army => {
+    const item = document.createElement('div');
+    item.className = `army-list-item ${army.status === 'marching' ? 'moving' : army.status === 'combat' ? 'in-combat' : ''}`;
+    const eta = army.arriveAt ? Math.max(0, Math.ceil((army.arriveAt - Date.now())/1000)) : 0;
+    item.innerHTML = `
+      <div class="a-name">${army.name} <span style="color:var(--txt2)">[${army.status}]</span></div>
+      <div class="a-stats">
+        ⚔️ ${calcArmyPower(army.units)} Сил | 🛡️ ${calcArmyHp(army.units)} HP<br>
+        📍 ${army.location || '?'} ${army.status === 'marching' ? `→ ${army.target} (${formatTime(eta)})` : ''}
+      </div>`;
+    listEl.appendChild(item);
+  });
+}
+
+window.selectArmyForMove = function(armyId) {
+  log(`Выберите целевой чанк на карте для армии. ID: ${armyId}`, 'log-info');
+  // Simple: next tile click will send this army
+  window._pendingArmyMove = armyId;
+};
+
+// ─── BUILD/ARMY QUEUE RENDER ──────────────────────────────────────────────────────
+let buildQueueSnapshot = {};
+let armyQueueSnapshot = {};
+
+function renderQueues() {
+  // Build queue
+  const bqEl = document.getElementById('build-queue');
+  bqEl.innerHTML = '';
+  const bqs = Object.values(buildQueueSnapshot);
+  if (!bqs.length) bqEl.innerHTML = '<p style="font-size:10px;color:var(--txt2);font-family:\'Share Tech Mono\',monospace">Очередь пуста</p>';
+  bqs.sort((a,b)=>a.finishAt-b.finishAt).forEach(item => {
+    const eta = Math.max(0, Math.ceil((item.finishAt - Date.now())/1000));
+    const pct = Math.min(100, Math.max(0, 100 - eta/((item.totalTime||600))*100));
+    const div = document.createElement('div');
+    div.className = 'build-queue-item';
+    div.innerHTML = `<span>${item.name}</span><span class="bq-time">${formatTime(eta)}</span>`;
+    bqEl.appendChild(div);
+    const bar = document.createElement('div');
+    bar.className = 'progress-bar-wrap';
+    bar.innerHTML = `<div class="progress-bar" style="width:${pct}%;background:var(--accent2)"></div>`;
+    bqEl.appendChild(bar);
+  });
+
+  // Army queue
+  const aqEl = document.getElementById('army-queue');
+  aqEl.innerHTML = '';
+  const aqs = Object.values(allArmiesSnapshot).filter(a => a.owner === myUID && a.status === 'forming');
+  if (!aqs.length) aqEl.innerHTML = '<p style="font-size:10px;color:var(--txt2);font-family:\'Share Tech Mono\',monospace">Очередь пуста</p>';
+  aqs.sort((a,b)=>a.finishAt-b.finishAt).forEach(item => {
+    const eta = Math.max(0, Math.ceil((item.finishAt - Date.now())/1000));
+    const div = document.createElement('div');
+    div.className = 'build-queue-item';
+    div.innerHTML = `<span>⚔️ ${item.name}</span><span class="bq-time">${formatTime(eta)}</span>`;
+    aqEl.appendChild(div);
+    const bar = document.createElement('div');
+    bar.className = 'progress-bar-wrap';
+    bar.innerHTML = `<div class="progress-bar" style="width:${Math.min(100,Math.max(0,100-eta/3600*100))}%;background:var(--accent)"></div>`;
+    aqEl.appendChild(bar);
+  });
+}
+
+// ─── INCOME TICK ─────────────────────────────────────────────────────────────────
+let lastTick = Date.now();
+function gameTick() {
+  const now = Date.now();
+  const dt = (now - lastTick) / 1000;
+  lastTick = now;
+
+  if (userState && myUID) {
+    // Passive income
+    const incomePerSec = (userState.income || 100) / 10 * (1 + (tech.industry?.incomeBonus || 0));
+    const metalPerSec = (userState.metalRate || 0) / 60 * (1 + (tech.mining?.mineBonus || 0));
+    const oilPerSec = (userState.oilRate || 0) / 60;
+    const uraniumPerSec = (userState.uraniumRate || 0) / 60;
+
+    const updates = {
+      gold: (userState.gold || 0) + incomePerSec * dt,
+      metal: (userState.metal || 0) + metalPerSec * dt,
+      oil: (userState.oil || 0) + oilPerSec * dt,
+      uranium: (userState.uranium || 0) + uraniumPerSec * dt,
+      lastUpdate: now
+    };
+
+    // Only write to DB every 10s to save quota
+    if (now - (userState._lastWrite || 0) > 10000) {
+      updateDoc(doc(db, 'countries', myUID), updates).catch(()=>{});
+      userState._lastWrite = now;
+    }
+    // Update local state immediately
+    userState = { ...userState, ...updates };
+    updateUI();
+
+    // Check army arrivals
+    Object.values(allArmiesSnapshot).forEach(async army => {
+      if (army.owner === myUID && army.status === 'marching' && army.arriveAt && now >= army.arriveAt) {
+        // Arrive!
+        allArmiesSnapshot[army.id] = { ...army, status: 'combat' };
+        await updateDoc(doc(db, 'armies', army.id), { status: 'combat' });
+        await resolveCombat(army.id, army.target);
+      }
+      if (army.owner === myUID && army.status === 'forming' && army.finishAt && now >= army.finishAt) {
+        allArmiesSnapshot[army.id] = { ...army, status: 'idle' };
+        await updateDoc(doc(db, 'armies', army.id), { status: 'idle' });
+        log(`Армия "${army.name}" сформирована и готова к бою!`, 'log-info');
+      }
+    });
+
+    // Check build queue
+    Object.values(buildQueueSnapshot).forEach(async item => {
+      if (item.owner === myUID && item.finishAt && now >= item.finishAt) {
+        delete buildQueueSnapshot[item.id];
+        await completeBuild(item);
+        await deleteDoc(doc(db, 'build_queue', item.id));
+      }
+    });
+  }
+
+  renderArmiesOnMap();
+  renderArmyList();
+  renderQueues();
+}
+
+async function completeBuild(item) {
+  const { type, chunkId } = item;
+  const def = BUILDING_DEFS[type];
+  if (!def) return;
+
+  // Add building to chunk
+  const tileRef = doc(db, 'world_map', chunkId);
+  const tileSnap = await getDoc(tileRef);
+  if (tileSnap.exists()) {
+    const cur = tileSnap.data();
+    const buildings = [...(cur.buildings || []), type];
+    let updates = { buildings };
+    if (def.popBonus) updates.population = (cur.population || 0) + def.popBonus;
+    if (def.defBonus) updates.defense = (cur.defense || 0) + def.defBonus;
+    await updateDoc(tileRef, updates);
+  }
+
+  // Update country rates
+  const countryUpd = {};
+  if (def.income) countryUpd.income = (userState.income||100) + def.income;
+  if (def.metalPerMin) countryUpd.metalRate = (userState.metalRate||0) + def.metalPerMin;
+  if (def.oilPerMin) countryUpd.oilRate = (userState.oilRate||0) + def.oilPerMin;
+  if (def.uraniumPerMin) countryUpd.uraniumRate = (userState.uraniumRate||0) + def.uraniumPerMin;
+  if (Object.keys(countryUpd).length) await updateDoc(doc(db, 'countries', myUID), countryUpd);
+
+  log(`"${def.name}" построено в чанке ${chunkId}!`, 'log-info');
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────────
+window.switchTab = function(tab) {
+  document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sidebar-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  const tabs = document.querySelectorAll('.stab');
+  const tabMap = {build:0, armies:1, research:2, queue:3};
+  tabs[tabMap[tab]]?.classList.add('active');
+};
+
+// ─── LEADER SETUP ─────────────────────────────────────────────────────────────────
+async function loadLeaderPicker() {
+  const snap = await getDocs(collection(db, 'countries'));
+  const taken = [];
+  snap.forEach(d => { if (d.data().leaderImgId) taken.push(d.data().leaderImgId); });
+
+  const picker = document.getElementById('leader-picker');
+  picker.innerHTML = '';
+  LEADERS.forEach(l => {
+    const isTaken = taken.includes(l.id);
+    const div = document.createElement('div');
+    div.className = `leader-card ${isTaken ? 'taken' : ''}`;
+    div.innerHTML = `<img src="leaders/${l.id}.png" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22><rect width=%2260%22 height=%2260%22 fill=%22%23222%22/><text x=%2230%22 y=%2235%22 text-anchor=%22middle%22 fill=%22%23888%22 font-size=%2220%22>?</text></svg>'"><div class="lname">${l.name}</div>`;
+    if (!isTaken) {
+      div.onclick = () => {
+        document.querySelectorAll('.leader-card').forEach(c => c.classList.remove('selected'));
+        div.classList.add('selected');
+        selectedLeader = l.id;
+      };
+    }
+    picker.appendChild(div);
+  });
+}
+
+document.getElementById('start-btn').onclick = async () => {
+  const pN = document.getElementById('player-name').value.trim();
+  const cN = document.getElementById('country-name').value.trim();
+  if (!pN || !cN) return alert('Введите имя и название страны!');
+  if (!selectedLeader) return alert('Выберите лидера!');
+
+  // Find start tile
+  let sX, sY, ok = false, tries = 0;
+  while (!ok && tries < 1000) {
+    sX = Math.floor(Math.random() * MAP_W);
+    sY = Math.floor(Math.random() * MAP_H);
+    if (tileTypes[`${sX}-${sY}`] === 'land') ok = true;
+    tries++;
+  }
+  const capId = `${sX}-${sY}`;
+  const pop = generatePopulation(sX, sY);
+  const res = tileResources[capId];
+
+  const countryData = {
+    leaderName: pN,
+    countryName: cN,
+    leaderImgId: selectedLeader,
+    gold: 75000,
+    army: 100,
+    chunks: 1,
+    income: 200,
+    population: Math.floor(pop),
+    metal: 5,
+    oil: 0,
+    uranium: 0,
+    rare: 0,
+    metalRate: 0,
+    oilRate: 0,
+    uraniumRate: 0,
+    capital: capId,
+    lastUpdate: Date.now()
+  };
+  await setDoc(doc(db, 'countries', myUID), countryData);
+  await setDoc(doc(db, 'world_map', capId), {
+    owner: myUID,
+    country: cN,
+    population: Math.floor(pop),
+    defense: 200,
+    buildings: ['barracks'],
+    isCapital: true,
+    resource: res || null,
+    lastUpdate: Date.now()
+  });
+  document.getElementById('setup-screen').classList.add('hidden');
+  log('Добро пожаловать! Ваша столица основана. Начинайте экспансию!');
+};
+
+// ─── FORMAT TIME ────────────────────────────────────────────────────────────────
+function formatTime(secs) {
+  if (secs <= 0) return '00:00';
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  if (h > 0) return `${h}ч ${m}м`;
+  if (m > 0) return `${m}м ${s}с`;
+  return `${s}с`;
+}
+
+// ─── OFFLINE INCOME ──────────────────────────────────────────────────────────────
+async function calculateOfflineIncome(data) {
+  const now = Date.now();
+  const last = data.lastUpdate || now;
+  const diff = Math.floor((now - last) / 1000);
+  if (diff < 10) return data.gold;
+  const earned = diff * ((data.income || 100) / 10);
+  const metalEarned = diff * ((data.metalRate || 0) / 60);
+  const oilEarned = diff * ((data.oilRate || 0) / 60);
+  const uEarned = diff * ((data.uraniumRate || 0) / 60);
+  log(`За время отсутствия (${formatTime(diff)}): +$${fmtNum(earned)}, +${metalEarned.toFixed(1)}т металла`, 'log-info');
+  const updates = {
+    gold: data.gold + earned,
+    metal: (data.metal||0) + metalEarned,
+    oil: (data.oil||0) + oilEarned,
+    uranium: (data.uranium||0) + uEarned,
+    lastUpdate: now
+  };
+  await updateDoc(doc(db, 'countries', myUID), updates);
+  return data.gold + earned;
+}
+
+// ─── FIREBASE LISTENERS ──────────────────────────────────────────────────────────
+signInAnonymously(auth);
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+  myUID = user.uid;
+  initMap();
+  await loadLeaderPicker();
+
+  const countryRef = doc(db, 'countries', myUID);
+  const uDoc = await getDoc(countryRef);
+
+  if (uDoc.exists()) {
+    await calculateOfflineIncome(uDoc.data());
+
+    onSnapshot(countryRef, (s) => {
+      userState = s.data();
+      tech = userState?.tech || {};
+      updateUI();
+    });
+    document.getElementById('setup-screen').classList.add('hidden');
+  } else {
+    document.getElementById('setup-screen').classList.remove('hidden');
+  }
+
+  // World map listener
+  onSnapshot(collection(db, 'world_map'), (snap) => {
+    worldTiles = {};
+    snap.forEach(d => {
+      worldTiles[d.id] = d.data();
+      // Sync resource to static
+      if (d.data().resource) tileResources[d.id] = d.data().resource;
+    });
+    refreshTileVisuals();
+  });
+
+  // All countries
+  onSnapshot(collection(db, 'countries'), (snap) => {
+    allCountries = {};
+    snap.forEach(d => { allCountries[d.id] = d.data(); });
+  });
+
+  // Armies
+  onSnapshot(collection(db, 'armies'), (snap) => {
+    allArmiesSnapshot = {};
+    snap.forEach(d => { allArmiesSnapshot[d.id] = d.data(); });
+    renderArmyList();
+    renderArmiesOnMap();
+  });
+
+  // Build queue
+  onSnapshot(collection(db, 'build_queue'), (snap) => {
+    buildQueueSnapshot = {};
+    snap.forEach(d => {
+      if (d.data().owner === myUID) buildQueueSnapshot[d.id] = d.data();
+    });
+    renderQueues();
+  });
+
+  // Game tick
+  setInterval(gameTick, 1000);
+});
 </script>
 </body>
 </html>
